@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Read Motor Group — Enquiry Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   READ MOTOR GROUP — ENQUIRY MANAGEMENT SYSTEM
+   Version 1.0
+   ============================================================ */
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-50: #fafafa;
+  --gray-100: #f4f4f5;
+  --gray-200: #e4e4e7;
+  --gray-300: #d1d1d6;
+  --gray-400: #a0a0ab;
+  --gray-600: #52525b;
+  --gray-700: #3f3f46;
+  --gray-800: #27272a;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --teal: #0d9488;
+  --teal-light: #ccfbf1;
+  --read-red: #c8102e;
+  --font: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+  --transition: 0.15s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--gray-50);
+  color: var(--black);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-svg { height: 32px; width: auto; }
+
+.header-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--gray-200);
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  letter-spacing: 0.01em;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  transition: background var(--transition);
+}
+.sync-dot.live { background: var(--green); }
+.sync-dot.loading { background: var(--amber); animation: pulse 1s infinite; }
+.sync-dot.error { background: var(--red); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+.btn-primary:hover { background: var(--gray-800); }
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--gray-200);
+}
+.btn-secondary:hover { background: var(--gray-50); border-color: var(--gray-300); }
+
+.btn-danger {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+.btn-danger:hover { background: #b91c1c; }
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 8px; min-width: 36px; justify-content: center; }
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.nav-tab {
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-400);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  user-select: none;
+}
+
+.nav-tab:hover { color: var(--black); }
+.nav-tab.active {
+  color: var(--black);
+  border-bottom-color: var(--black);
+}
+
+.nav-badge {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.nav-tab.active .nav-badge {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ── LAYOUT ── */
+.app-body {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+select.filter-select, input.filter-input {
+  height: 34px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+  outline: none;
+}
+
+select.filter-select:hover, input.filter-input:hover { border-color: var(--gray-300); }
+select.filter-select:focus, input.filter-input:focus { border-color: var(--black); }
+
+input.filter-search {
+  width: 220px;
+  padding: 0 10px 0 32px;
+}
+
+.search-wrap {
+  position: relative;
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  pointer-events: none;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1.5px solid transparent;
+}
+
+.chip.active-filter {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ── TABLE ── */
+.table-wrap {
+  overflow-x: auto;
+  background: var(--white);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead th {
+  background: var(--white);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  position: sticky;
+  top: 0;
+  background: var(--white);
+}
+
+thead th:hover { color: var(--black); }
+thead th .sort-arrow { display: inline; margin-left: 4px; opacity: 0.3; }
+thead th.sorted .sort-arrow { opacity: 1; }
+
+tbody tr {
+  border-bottom: 1px solid var(--gray-100);
+  transition: background var(--transition);
+  cursor: pointer;
+}
+
+tbody tr:hover { background: var(--gray-50); }
+tbody tr.selected { background: #f0f0ff; }
+
+tbody td {
+  padding: 10px 14px;
+  color: var(--black);
+  vertical-align: middle;
+}
+
+.td-name { font-weight: 500; }
+.td-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+.td-time {
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+/* ── STATUS BADGES ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-new        { background: var(--blue-light);   color: var(--blue);   }
+.badge-contacted  { background: var(--amber-light);  color: var(--amber);  }
+.badge-qualified  { background: var(--teal-light);   color: var(--teal);   }
+.badge-testdrive  { background: var(--purple-light); color: var(--purple); }
+.badge-awaiting   { background: #fff7ed;             color: #c2410c;       }
+.badge-sold       { background: var(--green-light);  color: var(--green);  }
+.badge-lost       { background: var(--red-light);    color: var(--red);    }
+.badge-noresponse { background: var(--gray-100);     color: var(--gray-600);}
+.badge-duplicate  { background: var(--gray-200);     color: var(--gray-600);}
+.badge-sales      { background: #f0fdf4; color: #166534; }
+.badge-aftersales { background: #fdf2f8; color: #86198f; }
+
+.check-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-yes {
+  width: 18px;
+  height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.check-no {
+  width: 18px;
+  height: 18px;
+  background: var(--gray-200);
+  border-radius: 50%;
+}
+
+/* ── LOADING & EMPTY ── */
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--gray-400);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--gray-400);
+}
+.empty-state h3 { font-size: 16px; font-weight: 500; color: var(--gray-600); margin-bottom: 8px; }
+
+/* ── PAGINATION ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  background: var(--white);
+  color: var(--black);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.page-btn:hover { border-color: var(--gray-300); background: var(--gray-50); }
+.page-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+.page-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ── MODAL / DRAWER ── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+}
+
+.overlay.open { display: flex; }
+
+.drawer {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(620px, 100vw);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  overflow: hidden;
+}
+
+.drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.drawer-title { font-size: 16px; font-weight: 600; }
+.drawer-subtitle { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* ── FORM ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid.cols-1 { grid-template-columns: 1fr; }
+.form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field.span-2 { grid-column: span 2; }
+.field.span-3 { grid-column: span 3; }
+
+label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 0 12px;
+  transition: border-color var(--transition);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.section-heading {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-400);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+/* ── CHECKBOXES / TOGGLES ── */
+.toggle-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.toggle-item:hover { border-color: var(--gray-300); background: var(--gray-50); }
+
+.toggle-item.checked {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+
+.toggle-item input[type="checkbox"] { display: none; }
+
+.toggle-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid var(--gray-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.toggle-item.checked .toggle-icon {
+  background: var(--white);
+  border-color: var(--white);
+}
+
+.toggle-label { font-size: 13px; font-weight: 500; }
+
+/* ── NOTES ── */
+.notes-section { margin-top: 24px; }
+
+.note-card {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--gray-300);
+}
+
+.note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.note-author { font-size: 12px; font-weight: 600; color: var(--black); }
+.note-time { font-size: 11px; color: var(--gray-400); }
+.note-type { font-size: 11px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.05em; }
+.note-text { font-size: 13px; color: var(--gray-700); line-height: 1.6; }
+
+.add-note-form {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 14px;
+}
+
+/* ── SUMMARY CARDS ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-400);
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.stat-pill.up { background: var(--green-light); color: var(--green); }
+.stat-pill.alert { background: var(--red-light); color: var(--red); }
+
+/* ── REPORTING DASHBOARD ── */
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 24px;
+}
+
+.report-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.report-card.full-width { grid-column: span 2; }
+
+.report-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-400);
+  margin-bottom: 16px;
+}
+
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.bar-label { min-width: 120px; color: var(--gray-600); font-weight: 500; }
+.bar-label-sm { min-width: 80px; color: var(--gray-600); font-weight: 500; }
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--gray-100);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--black);
+  transition: width 0.5s ease;
+}
+
+.bar-fill.green  { background: var(--green); }
+.bar-fill.red    { background: var(--red); }
+.bar-fill.blue   { background: var(--blue); }
+.bar-fill.amber  { background: var(--amber); }
+.bar-fill.purple { background: var(--purple); }
+.bar-fill.teal   { background: var(--teal); }
+
+.bar-count { min-width: 30px; text-align: right; font-weight: 600; color: var(--black); }
+
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.donut-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-name { flex: 1; color: var(--gray-600); }
+.legend-val { font-weight: 600; color: var(--black); }
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 80px;
+  margin-top: 8px;
+}
+
+.trend-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.trend-bar {
+  width: 100%;
+  background: var(--black);
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  transition: height 0.4s ease;
+}
+
+.trend-label {
+  font-size: 10px;
+  color: var(--gray-400);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.trend-val {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+/* ── REPORT FILTERS ── */
+.report-filters {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 12px 24px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--black);
+  color: var(--white);
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 320px;
+}
+
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+.toast.warning { background: var(--amber); }
+
+@keyframes toastIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ── SETTINGS ── */
+.settings-section {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.settings-section-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--gray-50);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 13px;
+}
+
+.settings-row:last-child { border-bottom: none; }
+.settings-key { font-weight: 500; color: var(--black); }
+.settings-val { color: var(--gray-600); font-family: var(--mono); font-size: 12px; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .header { padding: 0 16px; height: 54px; }
+  .header-title { display: none; }
+  .nav-tabs { padding: 0 8px; }
+  .nav-tab { padding: 12px 10px; font-size: 12px; gap: 5px; }
+  .filter-bar { padding: 10px 16px; gap: 6px; }
+  .stats-bar { grid-template-columns: 1fr 1fr; padding: 12px 16px; gap: 10px; }
+  .stat-value { font-size: 22px; }
+  .report-grid { grid-template-columns: 1fr; padding: 16px; }
+  .report-card.full-width { grid-column: span 1; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid.cols-3 { grid-template-columns: 1fr; }
+  .field.span-2, .field.span-3 { grid-column: span 1; }
+  .drawer { width: 100vw; top: auto; height: 92vh; border-radius: 16px 16px 0 0; bottom: 0; right: 0; transform: translateY(100%); }
+  .drawer.open { transform: translateY(0); }
+  .drawer-header { padding: 16px 20px; }
+  .drawer-body { padding: 16px 20px; }
+  table { min-width: 900px; }
+  .hide-mobile { display: none; }
+  .btn-text { display: none; }
+  .pagination { flex-direction: column; gap: 10px; align-items: flex-start; }
+}
+
+/* ── ICONS (inline SVG helpers) ── */
+.icon { width: 16px; height: 16px; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- CONFIGURATION — update these values -->
+<script>
+const CONFIG = {
+  APPS_SCRIPT_URL: "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
+  SHEET_ID: "YOUR_GOOGLE_SHEET_ID_HERE",
+  USER_NAME: localStorage.getItem("rmg_user") || "User",
+  REFRESH_INTERVAL: 60000, // ms — auto refresh data
+  ROWS_PER_PAGE: 25
+};
+</script>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <div class="logo-mark">
+      <!-- READ Motor Group Logo (SVG recreation) -->
+      <svg class="logo-svg" viewBox="0 0 140 36" xmlns="http://www.w3.org/2000/svg" aria-label="Read Motor Group">
+        <rect width="140" height="36" fill="white"/>
+        <!-- Red bar -->
+        <rect x="0" y="0" width="6" height="36" fill="#c8102e"/>
+        <!-- READ text -->
+        <text x="14" y="26" font-family="'DM Sans',Arial,sans-serif" font-weight="700" font-size="22" fill="#0a0a0a" letter-spacing="-0.5">READ</text>
+        <!-- Motor Group -->
+        <text x="14" y="35" font-family="'DM Sans',Arial,sans-serif" font-weight="400" font-size="9.5" fill="#52525b" letter-spacing="1.8">MOTOR GROUP</text>
+      </svg>
+    </div>
+    <div class="header-divider"></div>
+    <span class="header-title">Enquiry Management</span>
+  </div>
+  <div class="header-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncText">Connecting…</span>
+    </div>
+    <button class="btn btn-primary" onclick="openNewEnquiry()">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+      <span class="btn-text">New Enquiry</span>
+    </button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs" role="tablist">
+  <div class="nav-tab active" data-view="enquiries" onclick="switchView('enquiries')">
+    <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="2"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="10" x2="5" y2="10" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="10" x2="11" y2="10" stroke-linecap="round"/></svg>
+    Enquiries
+    <span class="nav-badge" id="tabTotal">—</span>
+  </div>
+  <div class="nav-tab" data-view="reporting" onclick="switchView('reporting')">
+    <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,12 5,7 8,9 11,4 15,8"/></svg>
+    Reports
+  </div>
+  <div class="nav-tab" data-view="settings" onclick="switchView('settings')">
+    <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.7 3.3l-1.1 1.1M4.4 11.6l-1.1 1.1M12.7 12.7l-1.1-1.1M4.4 4.4L3.3 3.3"/></svg>
+    Settings
+  </div>
+</nav>
+
+<!-- ================================================================
+     VIEW: ENQUIRIES
+================================================================ -->
+<div class="view active" id="view-enquiries">
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card">
+      <div class="stat-label">Total Enquiries</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">New Today</div>
+      <div class="stat-value" id="statToday">—</div>
+      <div class="stat-sub">Requires action</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sold</div>
+      <div class="stat-value" id="statSold">—</div>
+      <div class="stat-sub" id="statConversion">Conversion: —%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Follow Ups Due</div>
+      <div class="stat-value" id="statFollowUp">—</div>
+      <div class="stat-sub" id="statFollowUpSub">Overdue today</div>
+    </div>
+    <div class="stat-card" style="border-left: 3px solid var(--black);">
+      <div class="stat-label" style="display:flex;align-items:center;gap:6px">
+        <span id="ingestDot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-300);display:inline-block;flex-shrink:0"></span>
+        Email Ingestion
+      </div>
+      <div class="stat-value" id="statEmailLeads">—</div>
+      <div class="stat-sub" id="statLastRun">Last run: —</div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <div class="search-wrap">
+        <svg class="icon" style="color:#a0a0ab" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+        <input class="filter-input filter-search" id="searchInput" type="text" placeholder="Search name, email, phone…" oninput="debounceFilter()">
+      </div>
+    </div>
+    <div class="filter-group">
+      <select class="filter-select" id="filterSite" onchange="applyFilters()">
+        <option value="">All Sites</option>
+      </select>
+      <select class="filter-select" id="filterDept" onchange="applyFilters()">
+        <option value="">All Depts</option>
+        <option>Sales</option>
+        <option>Aftersales</option>
+      </select>
+      <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+        <option value="">All Statuses</option>
+      </select>
+      <select class="filter-select" id="filterSource" onchange="applyFilters()">
+        <option value="">All Sources</option>
+      </select>
+      <input class="filter-input" id="filterDateFrom" type="date" onchange="applyFilters()" title="From date">
+      <input class="filter-input" id="filterDateTo" type="date" onchange="applyFilters()" title="To date">
+      <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="tableWrap">
+    <div class="loading-overlay" id="tableLoading">
+      <div class="spinner"></div>
+      <div>Loading enquiries…</div>
+    </div>
+    <table id="enquiryTable" style="display:none">
+      <thead>
+        <tr>
+          <th onclick="sortBy('Enquiry ID')">ID <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('Timestamp')">Date <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('Site')">Site <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('Department')" class="hide-mobile">Dept <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('First Name')">Customer <span class="sort-arrow">↕</span></th>
+          <th class="hide-mobile">Contact</th>
+          <th onclick="sortBy('Source')" class="hide-mobile">Source <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('Vehicle Interest')" class="hide-mobile">Vehicle <span class="sort-arrow">↕</span></th>
+          <th onclick="sortBy('Status')">Status <span class="sort-arrow">↕</span></th>
+          <th class="hide-mobile">✓ Called</th>
+          <th class="hide-mobile">✓ Sold</th>
+          <th onclick="sortBy('Assigned To')" class="hide-mobile">Assigned <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="enquiryTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="paginationBar">
+    <span id="paginationInfo" style="color:var(--gray-400);font-size:12px"></span>
+    <div class="pagination-controls" id="paginationControls"></div>
+  </div>
+</div>
+
+<!-- ================================================================
+     VIEW: REPORTING
+================================================================ -->
+<div class="view" id="view-reporting">
+
+  <div class="report-filters">
+    <span class="filter-label" style="margin-right:4px">Filter:</span>
+    <select class="filter-select" id="reportSiteFilter" onchange="loadReporting()">
+      <option value="">All Sites</option>
+    </select>
+    <select class="filter-select" id="reportDeptFilter" onchange="loadReporting()">
+      <option value="">All Departments</option>
+      <option>Sales</option>
+      <option>Aftersales</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="exportReport()">
+      <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9v5h10V9"/><polyline points="5,6 8,9 11,6"/><line x1="8" y1="1" x2="8" y2="9"/></svg>
+      Export CSV
+    </button>
+  </div>
+
+  <!-- Email Ingestion Status Banner -->
+  <div id="ingestionBanner" style="margin:16px 24px 0;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 20px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--gray-100)">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><polyline points="1,3 8,9 15,3"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600">Email Ingestion — readleadsall@gmail.com</div>
+          <div style="font-size:12px;color:var(--gray-400)" id="ingestionStatusLine">Loading status…</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400)">Total via Email</div>
+          <div style="font-size:20px;font-weight:600" id="ingestionTotal">—</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400)">Last Run</div>
+          <div style="font-size:13px;font-weight:500" id="ingestionLastRun">—</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400)">Last Count</div>
+          <div style="font-size:20px;font-weight:600;color:var(--green)" id="ingestionLastCount">—</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400)">Failures</div>
+          <div style="font-size:20px;font-weight:600;color:var(--red)" id="ingestionFails">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-grid" id="reportGrid">
+    <div class="loading-overlay" style="grid-column:span 2">
+      <div class="spinner"></div>
+      <div>Loading report data…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     VIEW: SETTINGS
+================================================================ -->
+<div class="view" id="view-settings">
+  <div style="max-width:700px; margin:24px auto; padding:0 24px">
+    <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">System Settings</h2>
+
+    <div class="settings-section">
+      <div class="settings-section-header">Connection</div>
+      <div class="settings-row">
+        <span class="settings-key">Google Apps Script URL</span>
+        <input type="text" id="settingsUrl" style="width:300px;height:32px;font-size:12px;font-family:var(--mono)" placeholder="Paste your Web App URL">
+      </div>
+      <div class="settings-row">
+        <span class="settings-key">Google Sheet ID</span>
+        <input type="text" id="settingsSheetId" style="width:300px;height:32px;font-size:12px;font-family:var(--mono)" placeholder="Spreadsheet ID">
+      </div>
+      <div class="settings-row" style="justify-content:flex-end">
+        <button class="btn btn-primary btn-sm" onclick="saveSettings()">Save & Test Connection</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">Your Profile</div>
+      <div class="settings-row">
+        <span class="settings-key">Display Name</span>
+        <input type="text" id="settingsUser" style="width:200px;height:32px" placeholder="Your name">
+      </div>
+      <div class="settings-row" style="justify-content:flex-end">
+        <button class="btn btn-secondary btn-sm" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">Sites Configured</div>
+      <div id="settingsSites"></div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">About</div>
+      <div class="settings-row">
+        <span class="settings-key">System Version</span>
+        <span class="settings-val">1.0.0</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-key">Organisation</span>
+        <span class="settings-val">Read Motor Group</span>
+      </div>
+      <div class="settings-row">
+        <span class="settings-key">Sites</span>
+        <span class="settings-val">Kings Lynn · Boston · Lincoln · Worksop · Burton</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     ENQUIRY DRAWER (view / edit)
+================================================================ -->
+<div class="overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="enquiryDrawer" role="dialog" aria-modal="true">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-title" id="drawerTitle">Enquiry Details</div>
+      <div class="drawer-subtitle" id="drawerSubtitle"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="drawerStatus"></span>
+      <button class="btn btn-secondary btn-sm" onclick="closeDrawer()">Close</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- Populated by JS -->
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-secondary" onclick="closeDrawer()">Cancel</button>
+    <button class="btn btn-primary" id="drawerSaveBtn" onclick="saveEnquiry()">Save Changes</button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ================================================================
+     JAVASCRIPT APPLICATION
+================================================================ -->
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+const state = {
+  enquiries: [],
+  filtered: [],
+  config: null,
+  currentPage: 1,
+  sortField: "Timestamp",
+  sortDir: -1,
+  drawerMode: "view",
+  currentEnquiry: null,
+  isNew: false
+};
+
+// ── CONSTANTS ──────────────────────────────────────────────────────
+const SITES = ["Kings Lynn","Boston","Lincoln","Worksop","Burton"];
+const DEPARTMENTS = ["Sales","Aftersales"];
+const SOURCES = ["Autotrader","Motors.co.uk","CarGurus","eBay Motors","Website","Walk-in","Phone","Email","Facebook","Instagram","Google Ads","Referral","Repeat Customer","Fleet","Other"];
+const STATUSES = ["New","Contacted","Qualified","Test Drive Booked","Awaiting Decision","Sold","Lost","No Response","Duplicate"];
+const ENQUIRY_TYPES = ["New Car","Used Car","Van","Motorbike","Part Exchange","Finance Enquiry","Test Drive","Service Booking","MOT Booking","Warranty","Parts","Bodyshop","Recall","General"];
+const LOST_REASONS = ["Price Too High","Went Elsewhere","Not Ready to Buy","Finance Declined","Wrong Vehicle","No Stock","No Contact Made","Other"];
+
+const STATUS_BADGE = {
+  "New":"badge-new","Contacted":"badge-contacted","Qualified":"badge-qualified",
+  "Test Drive Booked":"badge-testdrive","Awaiting Decision":"badge-awaiting",
+  "Sold":"badge-sold","Lost":"badge-lost","No Response":"badge-noresponse","Duplicate":"badge-duplicate"
+};
+
+const BAR_COLOURS = ["black","blue","green","amber","purple","teal","red"];
+
+// ── INIT ───────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  loadSettings();
+  populateStaticFilters();
+  loadEnquiries();
+  populateSettingsSites();
+
+  setInterval(() => {
+    if (document.visibilityState === "visible") loadEnquiries(true);
+  }, CONFIG.REFRESH_INTERVAL);
+});
+
+function loadSettings() {
+  const savedUrl = localStorage.getItem("rmg_api_url");
+  const savedSheet = localStorage.getItem("rmg_sheet_id");
+  const savedUser = localStorage.getItem("rmg_user");
+
+  if (savedUrl) CONFIG.APPS_SCRIPT_URL = savedUrl;
+  if (savedSheet) CONFIG.SHEET_ID = savedSheet;
+  if (savedUser) CONFIG.USER_NAME = savedUser;
+
+  document.getElementById("settingsUrl").value = CONFIG.APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE" ? CONFIG.APPS_SCRIPT_URL : "";
+  document.getElementById("settingsSheetId").value = CONFIG.SHEET_ID !== "YOUR_GOOGLE_SHEET_ID_HERE" ? CONFIG.SHEET_ID : "";
+  document.getElementById("settingsUser").value = CONFIG.USER_NAME || "";
+}
+
+function saveSettings() {
+  const url = document.getElementById("settingsUrl").value.trim();
+  const sheetId = document.getElementById("settingsSheetId").value.trim();
+
+  if (!url) { showToast("Please enter the Apps Script URL", "error"); return; }
+
+  CONFIG.APPS_SCRIPT_URL = url;
+  CONFIG.SHEET_ID = sheetId;
+  localStorage.setItem("rmg_api_url", url);
+  localStorage.setItem("rmg_sheet_id", sheetId);
+
+  showToast("Settings saved — testing connection…", "");
+  setSyncStatus("loading", "Testing…");
+  loadEnquiries();
+}
+
+function saveProfile() {
+  const name = document.getElementById("settingsUser").value.trim();
+  if (!name) { showToast("Please enter your name", "error"); return; }
+  CONFIG.USER_NAME = name;
+  localStorage.setItem("rmg_user", name);
+  showToast("Profile saved", "success");
+}
+
+function populateSettingsSites() {
+  const el = document.getElementById("settingsSites");
+  el.innerHTML = SITES.map(s =>
+    `<div class="settings-row"><span class="settings-key">${s}</span><span class="settings-val">Active</span></div>`
+  ).join("");
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function switchView(view) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("view-" + view).classList.add("active");
+  document.querySelector(`[data-view="${view}"]`).classList.add("active");
+  if (view === "reporting") loadReporting();
+}
+
+// ── API ────────────────────────────────────────────────────────────
+async function apiCall(action, params = {}) {
+  const url = CONFIG.APPS_SCRIPT_URL;
+  if (!url || url === "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE") {
+    throw new Error("No API URL configured. Go to Settings.");
+  }
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ action, ...params })
+  });
+
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  const data = await resp.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+// ── LOAD ENQUIRIES ────────────────────────────────────────────────
+async function loadEnquiries(silent = false) {
+  if (!silent) {
+    document.getElementById("tableLoading").style.display = "flex";
+    document.getElementById("enquiryTable").style.display = "none";
+  }
+  setSyncStatus("loading", "Syncing…");
+
+  try {
+    const params = buildFilterParams();
+    const result = await apiCall("getEnquiries", params);
+    state.enquiries = result.enquiries || [];
+    state.filtered = [...state.enquiries];
+    setSyncStatus("live", "Live · " + new Date().toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"}));
+    renderTable();
+    updateStats();
+    populateFiltersFromData();
+  } catch (e) {
+    setSyncStatus("error", "Error");
+    if (!silent) showToast(e.message, "error");
+    document.getElementById("tableLoading").style.display = "none";
+    document.getElementById("enquiryTable").style.display = "table";
+  }
+}
+
+function buildFilterParams() {
+  return {
+    site: document.getElementById("filterSite").value,
+    department: document.getElementById("filterDept").value,
+    status: document.getElementById("filterStatus").value,
+    source: document.getElementById("filterSource").value,
+    search: document.getElementById("searchInput").value,
+    dateFrom: document.getElementById("filterDateFrom").value,
+    dateTo: document.getElementById("filterDateTo").value
+  };
+}
+
+// ── RENDER TABLE ──────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById("enquiryTableBody");
+  const page = state.currentPage;
+  const per = CONFIG.ROWS_PER_PAGE;
+  const sorted = sortData(state.filtered);
+  const total = sorted.length;
+  const start = (page - 1) * per;
+  const end = Math.min(start + per, total);
+  const pageData = sorted.slice(start, end);
+
+  document.getElementById("tableLoading").style.display = "none";
+  document.getElementById("enquiryTable").style.display = "table";
+
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><h3>No enquiries found</h3><p>Try adjusting your filters or add a new enquiry.</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map(e => renderRow(e)).join("");
+  }
+
+  document.getElementById("tabTotal").textContent = total;
+  renderPagination(total, page, per);
+}
+
+function renderRow(e) {
+  const ts = e["Timestamp"] ? new Date(e["Timestamp"]) : null;
+  const dateStr = ts ? ts.toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}) : "—";
+  const timeStr = ts ? ts.toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"}) : "";
+  const status = e["Status"] || "New";
+  const dept = e["Department"] || "";
+  const contacted = e["Contacted"] === true || e["Contacted"] === "TRUE";
+  const called = e["Called"] === true || e["Called"] === "TRUE";
+  const sold = e["Sold"] === true || e["Sold"] === "TRUE";
+
+  return `<tr onclick="openEnquiry('${e["Enquiry ID"]}')">
+    <td class="td-id">${e["Enquiry ID"] || "—"}</td>
+    <td class="td-time">${dateStr}<br><span style="font-size:11px;color:var(--gray-400)">${timeStr}</span></td>
+    <td>${e["Site"] || "—"}</td>
+    <td class="hide-mobile"><span class="badge ${dept === "Sales" ? "badge-sales" : "badge-aftersales"}">${dept}</span></td>
+    <td class="td-name">${(e["First Name"] || "") + " " + (e["Last Name"] || "")}<br><span style="font-size:11px;color:var(--gray-400)">${e["Vehicle Interest"] || ""}</span></td>
+    <td class="hide-mobile" style="font-size:12px">${e["Email"] || ""}<br>${e["Phone"] || ""}</td>
+    <td class="hide-mobile">${e["Source"] || "—"}</td>
+    <td class="hide-mobile">${e["Enquiry Type"] || "—"}</td>
+    <td><span class="badge ${STATUS_BADGE[status] || "badge-noresponse"}">${status}</span></td>
+    <td class="hide-mobile"><div class="check-cell">${called ? '<div class="check-yes"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg></div>' : '<div class="check-no"></div>'}</div></td>
+    <td class="hide-mobile"><div class="check-cell">${sold ? '<div class="check-yes"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg></div>' : '<div class="check-no"></div>'}</div></td>
+    <td class="hide-mobile">${e["Assigned To"] || "—"}</td>
+  </tr>`;
+}
+
+// ── SORT ──────────────────────────────────────────────────────────
+function sortBy(field) {
+  if (state.sortField === field) {
+    state.sortDir *= -1;
+  } else {
+    state.sortField = field;
+    state.sortDir = -1;
+  }
+  document.querySelectorAll("thead th").forEach(th => th.classList.remove("sorted"));
+  renderTable();
+}
+
+function sortData(rows) {
+  return [...rows].sort((a, b) => {
+    let av = a[state.sortField] || "";
+    let bv = b[state.sortField] || "";
+    if (state.sortField === "Timestamp") {
+      av = new Date(av); bv = new Date(bv);
+      return (av - bv) * state.sortDir;
+    }
+    return String(av).localeCompare(String(bv)) * state.sortDir;
+  });
+}
+
+// ── FILTERS ──────────────────────────────────────────────────────
+function populateStaticFilters() {
+  const siteEl = document.getElementById("filterSite");
+  const reportSiteEl = document.getElementById("reportSiteFilter");
+  SITES.forEach(s => {
+    siteEl.innerHTML += `<option value="${s}">${s}</option>`;
+    reportSiteEl.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+
+  const statusEl = document.getElementById("filterStatus");
+  STATUSES.forEach(s => statusEl.innerHTML += `<option value="${s}">${s}</option>`);
+
+  const sourceEl = document.getElementById("filterSource");
+  SOURCES.forEach(s => sourceEl.innerHTML += `<option value="${s}">${s}</option>`);
+}
+
+function populateFiltersFromData() {}
+
+let filterTimer;
+function debounceFilter() {
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(applyFilters, 300);
+}
+
+function applyFilters() {
+  state.currentPage = 1;
+  loadEnquiries();
+}
+
+function clearFilters() {
+  document.getElementById("filterSite").value = "";
+  document.getElementById("filterDept").value = "";
+  document.getElementById("filterStatus").value = "";
+  document.getElementById("filterSource").value = "";
+  document.getElementById("filterDateFrom").value = "";
+  document.getElementById("filterDateTo").value = "";
+  document.getElementById("searchInput").value = "";
+  applyFilters();
+}
+
+// ── PAGINATION ────────────────────────────────────────────────────
+function renderPagination(total, page, per) {
+  const totalPages = Math.ceil(total / per);
+  const start = total === 0 ? 0 : (page - 1) * per + 1;
+  const end = Math.min(page * per, total);
+
+  document.getElementById("paginationInfo").textContent = `Showing ${start}–${end} of ${total} enquiries`;
+
+  const controls = document.getElementById("paginationControls");
+  const pages = [];
+
+  pages.push(`<button class="page-btn" onclick="goPage(${page-1})" ${page<=1?"disabled":""}>&lsaquo;</button>`);
+
+  for (let p = Math.max(1, page-2); p <= Math.min(totalPages, page+2); p++) {
+    pages.push(`<button class="page-btn ${p===page?"active":""}" onclick="goPage(${p})">${p}</button>`);
+  }
+
+  pages.push(`<button class="page-btn" onclick="goPage(${page+1})" ${page>=totalPages?"disabled":""}>&rsaquo;</button>`);
+
+  controls.innerHTML = pages.join("");
+}
+
+function goPage(p) {
+  const maxPage = Math.ceil(state.filtered.length / CONFIG.ROWS_PER_PAGE);
+  if (p < 1 || p > maxPage) return;
+  state.currentPage = p;
+  renderTable();
+  window.scrollTo(0, 0);
+}
+
+// ── STATS BAR ────────────────────────────────────────────────────
+function updateStats() {
+  const total = state.filtered.length;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayCount = state.filtered.filter(e => {
+    const ts = e["Timestamp"] ? new Date(e["Timestamp"]) : null;
+    if (!ts) return false;
+    const d = new Date(ts); d.setHours(0,0,0,0);
+    return d.getTime() === today.getTime();
+  }).length;
+  const sold = state.filtered.filter(e => e["Status"] === "Sold").length;
+  const convRate = total > 0 ? Math.round((sold / total) * 100) : 0;
+
+  const followUps = state.filtered.filter(e => {
+    if (!e["Follow Up Date"]) return false;
+    const fu = new Date(e["Follow Up Date"]); fu.setHours(0,0,0,0);
+    return fu <= today && e["Status"] !== "Sold" && e["Status"] !== "Lost";
+  }).length;
+
+  const emailLeads = state.filtered.filter(e => e["Updated By"] === "Email Ingestion").length;
+
+  document.getElementById("statTotal").textContent = total.toLocaleString();
+  document.getElementById("statToday").textContent = todayCount;
+  document.getElementById("statSold").textContent = sold;
+  document.getElementById("statConversion").textContent = `Conversion: ${convRate}%`;
+  document.getElementById("statFollowUp").textContent = followUps;
+  if (followUps > 0) document.getElementById("statFollowUpSub").textContent = `⚠ ${followUps} overdue`;
+
+  document.getElementById("statEmailLeads").textContent = emailLeads;
+  if (emailLeads > 0) {
+    document.getElementById("ingestDot").style.background = "var(--green)";
+    document.getElementById("statLastRun").textContent = `${emailLeads} via email`;
+  }
+
+  loadIngestionStatus();
+}
+
+async function loadIngestionStatus() {
+  try {
+    const result = await apiCall("getConfig");
+    const cfg = result.config || {};
+    const lastRun   = cfg["LAST_INGESTION_RUN"];
+    const lastCount = cfg["LAST_INGESTION_COUNT"];
+    const lastFails = cfg["LAST_INGESTION_FAILS"];
+    const totalEmail = cfg["TOTAL_EMAIL_LEADS"];
+
+    if (lastRun) {
+      const d = new Date(lastRun);
+      const mins = Math.round((Date.now() - d) / 60000);
+      const timeStr = d.toLocaleTimeString("en-GB", {hour:"2-digit",minute:"2-digit"});
+      const label = mins < 2 ? "just now" : mins < 60 ? `${mins}m ago` : d.toLocaleDateString("en-GB",{day:"2-digit",month:"short"}) + " " + timeStr;
+
+      document.getElementById("statLastRun").textContent = `Last run: ${label}`;
+      document.getElementById("ingestDot").style.background = mins < 5 ? "var(--green)" : mins < 15 ? "var(--amber)" : "var(--red)";
+
+      // Update reporting banner
+      const banner = document.getElementById("ingestionBanner");
+      if (banner) {
+        banner.style.display = "block";
+        document.getElementById("ingestionStatusLine").textContent =
+          `Running every minute · Last run: ${label} · Status: ${lastFails > 0 ? "⚠ " + lastFails + " failures" : "✓ OK"}`;
+        document.getElementById("ingestionTotal").textContent   = totalEmail || "0";
+        document.getElementById("ingestionLastRun").textContent = label;
+        document.getElementById("ingestionLastCount").textContent = lastCount || "0";
+        document.getElementById("ingestionFails").textContent   = lastFails || "0";
+      }
+    }
+  } catch(e) {
+    // Silently fail — ingestion stats are non-critical
+  }
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────
+function openEnquiry(id) {
+  const e = state.enquiries.find(x => x["Enquiry ID"] === id);
+  if (!e) { showToast("Enquiry not found", "error"); return; }
+  state.currentEnquiry = e;
+  state.isNew = false;
+  renderDrawer(e, false);
+  openDrawer();
+  loadNotes(id);
+}
+
+function openNewEnquiry() {
+  state.currentEnquiry = null;
+  state.isNew = true;
+  renderDrawer(null, true);
+  openDrawer();
+}
+
+function openDrawer() {
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("enquiryDrawer").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeDrawer() {
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("enquiryDrawer").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function renderDrawer(e, isNew) {
+  const title = isNew ? "New Enquiry" : ((e["First Name"] || "") + " " + (e["Last Name"] || "")).trim() || e["Enquiry ID"];
+  const subtitle = isNew ? "Fill in the details below" : (e["Enquiry ID"] + " · " + (e["Site"] || "") + " · " + (e["Source"] || ""));
+
+  document.getElementById("drawerTitle").textContent = title;
+  document.getElementById("drawerSubtitle").textContent = subtitle;
+
+  const status = e ? e["Status"] || "New" : "New";
+  document.getElementById("drawerStatus").innerHTML = `<span class="badge ${STATUS_BADGE[status]||"badge-new"}">${status}</span>`;
+
+  const contacted = e && (e["Contacted"] === true || e["Contacted"] === "TRUE");
+  const called    = e && (e["Called"]    === true || e["Called"]    === "TRUE");
+  const testDrive = e && (e["Test Drive"] === true || e["Test Drive"] === "TRUE");
+  const sold      = e && (e["Sold"]       === true || e["Sold"]      === "TRUE");
+
+  const fu = e && e["Follow Up Date"] ? new Date(e["Follow Up Date"]).toISOString().split("T")[0] : "";
+
+  document.getElementById("drawerBody").innerHTML = `
+    <div class="section-heading">Customer Information</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" id="f_firstName" value="${esc(e?.["First Name"])}">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" id="f_lastName" value="${esc(e?.["Last Name"])}">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="f_email" value="${esc(e?.["Email"])}">
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input type="tel" id="f_phone" value="${esc(e?.["Phone"])}">
+      </div>
+    </div>
+
+    <div class="section-heading" style="margin-top:20px">Enquiry Details</div>
+    <div class="form-grid cols-3">
+      <div class="field">
+        <label>Site</label>
+        <select id="f_site">${SITES.map(s=>`<option ${e?.["Site"]===s?"selected":""}>${s}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <select id="f_dept">${DEPARTMENTS.map(d=>`<option ${e?.["Department"]===d?"selected":""}>${d}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Source</label>
+        <select id="f_source">${SOURCES.map(s=>`<option ${e?.["Source"]===s?"selected":""}>${s}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Enquiry Type</label>
+        <select id="f_type">${ENQUIRY_TYPES.map(t=>`<option ${e?.["Enquiry Type"]===t?"selected":""}>${t}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="f_status" onchange="updateStatusBadge()">${STATUSES.map(s=>`<option ${(e?.["Status"]||"New")===s?"selected":""}>${s}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Assigned To</label>
+        <input type="text" id="f_assigned" value="${esc(e?.["Assigned To"])}">
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field">
+        <label>Vehicle Interest</label>
+        <input type="text" id="f_vehicle" value="${esc(e?.["Vehicle Interest"])}">
+      </div>
+      <div class="field">
+        <label>Reg / Model</label>
+        <input type="text" id="f_reg" value="${esc(e?.["Reg / Model"])}">
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <input type="number" id="f_year" value="${esc(e?.["Year"])}" min="1990" max="2030">
+      </div>
+      <div class="field">
+        <label>Budget (£)</label>
+        <input type="number" id="f_budget" value="${esc(e?.["Budget"])}">
+      </div>
+      <div class="field">
+        <label>Lost Reason</label>
+        <select id="f_lost"><option value="">—</option>${LOST_REASONS.map(r=>`<option ${e?.["Lost Reason"]===r?"selected":""}>${r}</option>`).join("")}</select>
+      </div>
+      <div class="field">
+        <label>Follow Up Date</label>
+        <input type="date" id="f_followup" value="${fu}">
+      </div>
+    </div>
+
+    <div class="section-heading" style="margin-top:20px">Actions & Progress</div>
+    <div class="toggle-row">
+      ${toggleBtn("f_contacted","Contacted",contacted)}
+      ${toggleBtn("f_called","Called",called)}
+      ${toggleBtn("f_testdrive","Test Drive",testDrive)}
+      ${toggleBtn("f_sold","Sold",sold)}
+    </div>
+
+    <div class="notes-section" ${isNew ? 'style="display:none"' : ""}>
+      <div class="section-heading">Notes & Activity</div>
+      <div id="notesList"><div class="loading-overlay" style="padding:20px"><div class="spinner"></div></div></div>
+      <div class="add-note-form">
+        <div class="form-grid">
+          <div class="field">
+            <label>Add Note</label>
+            <textarea id="newNoteText" rows="2" placeholder="Type your note here…"></textarea>
+          </div>
+          <div class="field">
+            <label>Note Type</label>
+            <select id="newNoteType">
+              <option>General</option><option>Contact Attempt</option><option>Sale Update</option>
+              <option>Service Update</option><option>Follow Up</option><option>Complaint</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="addNote()">Add Note</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleBtn(id, label, checked) {
+  return `<label class="toggle-item ${checked ? "checked" : ""}" onclick="toggleItem(this, '${id}')">
+    <input type="checkbox" id="${id}" ${checked ? "checked" : ""}>
+    <div class="toggle-icon">
+      ${checked ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg>' : ""}
+    </div>
+    <span class="toggle-label">${label}</span>
+  </label>`;
+}
+
+function toggleItem(el, id) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+  el.classList.toggle("checked", cb.checked);
+  const icon = el.querySelector(".toggle-icon");
+  icon.innerHTML = cb.checked ? '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 4,7 8,3"/></svg>' : "";
+}
+
+function updateStatusBadge() {
+  const status = document.getElementById("f_status").value;
+  document.getElementById("drawerStatus").innerHTML = `<span class="badge ${STATUS_BADGE[status]||"badge-new"}">${status}</span>`;
+}
+
+// ── SAVE ENQUIRY ──────────────────────────────────────────────────
+async function saveEnquiry() {
+  const btn = document.getElementById("drawerSaveBtn");
+  btn.textContent = "Saving…";
+  btn.disabled = true;
+
+  try {
+    const data = {
+      site: val("f_site"), department: val("f_dept"), source: val("f_source"),
+      enquiryType: val("f_type"), firstName: val("f_firstName"), lastName: val("f_lastName"),
+      email: val("f_email"), phone: val("f_phone"), vehicleInterest: val("f_vehicle"),
+      regModel: val("f_reg"), year: val("f_year"), budget: val("f_budget"),
+      status: val("f_status"), assignedTo: val("f_assigned"),
+      contacted: document.getElementById("f_contacted")?.checked || false,
+      called: document.getElementById("f_called")?.checked || false,
+      testDrive: document.getElementById("f_testdrive")?.checked || false,
+      sold: document.getElementById("f_sold")?.checked || false,
+      lostReason: val("f_lost"), followUpDate: val("f_followup"),
+      updatedBy: CONFIG.USER_NAME
+    };
+
+    if (state.isNew) {
+      await apiCall("addEnquiry", data);
+      showToast("Enquiry created successfully", "success");
+    } else {
+      await apiCall("updateEnquiry", {
+        enquiryId: state.currentEnquiry["Enquiry ID"],
+        updates: data,
+        updatedBy: CONFIG.USER_NAME
+      });
+      showToast("Enquiry updated", "success");
+    }
+
+    closeDrawer();
+    await loadEnquiries(true);
+  } catch (e) {
+    showToast(e.message, "error");
+  } finally {
+    btn.textContent = "Save Changes";
+    btn.disabled = false;
+  }
+}
+
+// ── NOTES ────────────────────────────────────────────────────────
+async function loadNotes(id) {
+  try {
+    const result = await apiCall("getNotes", { enquiryId: id });
+    const notes = result.notes || [];
+    const el = document.getElementById("notesList");
+    if (!el) return;
+    if (notes.length === 0) {
+      el.innerHTML = '<p style="color:var(--gray-400);font-size:13px;padding:8px 0">No notes yet.</p>';
+      return;
+    }
+    el.innerHTML = notes.reverse().map(n => {
+      const ts = n["Timestamp"] ? new Date(n["Timestamp"]).toLocaleString("en-GB") : "—";
+      return `<div class="note-card">
+        <div class="note-meta">
+          <span class="note-author">${n["Author"] || "Unknown"}</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="note-type">${n["Note Type"] || ""}</span>
+            <span class="note-time">${ts}</span>
+          </div>
+        </div>
+        <div class="note-text">${n["Note Text"] || ""}</div>
+      </div>`;
+    }).join("");
+  } catch(e) {
+    const el = document.getElementById("notesList");
+    if (el) el.innerHTML = '<p style="color:var(--red);font-size:13px">Could not load notes.</p>';
+  }
+}
+
+async function addNote() {
+  const text = document.getElementById("newNoteText").value.trim();
+  if (!text) { showToast("Please enter a note", "error"); return; }
+  try {
+    await apiCall("addNote", {
+      enquiryId: state.currentEnquiry["Enquiry ID"],
+      noteText: text,
+      noteType: document.getElementById("newNoteType").value,
+      author: CONFIG.USER_NAME
+    });
+    document.getElementById("newNoteText").value = "";
+    showToast("Note added", "success");
+    loadNotes(state.currentEnquiry["Enquiry ID"]);
+  } catch(e) {
+    showToast(e.message, "error");
+  }
+}
+
+// ── REPORTING ────────────────────────────────────────────────────
+async function loadReporting() {
+  const grid = document.getElementById("reportGrid");
+  grid.innerHTML = `<div class="loading-overlay" style="grid-column:span 2"><div class="spinner"></div><div>Loading data…</div></div>`;
+
+  try {
+    const siteFilter = document.getElementById("reportSiteFilter").value;
+    const stats = await apiCall("getStats", { site: siteFilter });
+    renderReporting(stats);
+  } catch(e) {
+    grid.innerHTML = `<div style="padding:40px;color:var(--red);grid-column:span 2">Error loading reports: ${e.message}</div>`;
+  }
+}
+
+function renderReporting(s) {
+  const grid = document.getElementById("reportGrid");
+  const maxSite   = Math.max(...Object.values(s.bySite));
+  const maxSource = Math.max(...Object.values(s.bySource));
+  const maxStatus = Math.max(...Object.values(s.byStatus));
+  const maxType   = Math.max(...Object.values(s.byType));
+  const maxTrend  = Math.max(...Object.values(s.monthlyTrend), 1);
+
+  const siteColours   = ["black","blue","green","amber","purple"];
+  const statusColours = { "New":"blue","Contacted":"amber","Qualified":"teal","Test Drive Booked":"purple","Awaiting Decision":"amber","Sold":"green","Lost":"red","No Response":"black","Duplicate":"black" };
+  const sourceColours = ["black","blue","green","amber","purple","teal","red","black","blue","green","amber","purple","teal","red","black"];
+
+  grid.innerHTML = `
+    <!-- KPI Row -->
+    <div class="report-card">
+      <div class="report-card-title">Total Enquiries</div>
+      <div style="font-size:42px;font-weight:600;line-height:1">${s.total.toLocaleString()}</div>
+      <div style="font-size:13px;color:var(--gray-400);margin-top:6px">All matching records</div>
+    </div>
+    <div class="report-card">
+      <div class="report-card-title">Sold</div>
+      <div style="font-size:42px;font-weight:600;line-height:1;color:var(--green)">${s.sold.toLocaleString()}</div>
+      <div style="font-size:13px;color:var(--gray-400);margin-top:6px">Conversion rate: <strong>${s.conversionRate}%</strong></div>
+    </div>
+
+    <!-- Monthly Trend -->
+    <div class="report-card full-width">
+      <div class="report-card-title">Monthly Enquiry Trend (last 6 months)</div>
+      <div class="trend-chart">
+        ${Object.entries(s.monthlyTrend).map(([month, count]) => `
+          <div class="trend-bar-wrap">
+            <div class="trend-val">${count}</div>
+            <div class="trend-bar" style="height:${maxTrend>0?Math.round((count/maxTrend)*60)+4:4}px"></div>
+            <div class="trend-label">${month.split(" ")[0]}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- By Site -->
+    <div class="report-card">
+      <div class="report-card-title">Enquiries by Site</div>
+      <div class="bar-chart">
+        ${Object.entries(s.bySite).map(([site,count],i) => `
+          <div class="bar-row">
+            <span class="bar-label">${site}</span>
+            <div class="bar-track"><div class="bar-fill ${siteColours[i]}" style="width:${maxSite>0?Math.round((count/maxSite)*100):0}%"></div></div>
+            <span class="bar-count">${count}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- By Status -->
+    <div class="report-card">
+      <div class="report-card-title">Enquiries by Status</div>
+      <div class="bar-chart">
+        ${Object.entries(s.byStatus).filter(([,v])=>v>0).map(([status,count]) => `
+          <div class="bar-row">
+            <span class="bar-label" style="min-width:130px">${status}</span>
+            <div class="bar-track"><div class="bar-fill ${statusColours[status]||"black"}" style="width:${maxStatus>0?Math.round((count/maxStatus)*100):0}%"></div></div>
+            <span class="bar-count">${count}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- By Source -->
+    <div class="report-card">
+      <div class="report-card-title">Enquiries by Source</div>
+      <div class="bar-chart">
+        ${Object.entries(s.bySource).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([src,count],i) => `
+          <div class="bar-row">
+            <span class="bar-label">${src}</span>
+            <div class="bar-track"><div class="bar-fill ${sourceColours[i%sourceColours.length]}" style="width:${maxSource>0?Math.round((count/maxSource)*100):0}%"></div></div>
+            <span class="bar-count">${count}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- By Type -->
+    <div class="report-card">
+      <div class="report-card-title">Enquiries by Type</div>
+      <div class="bar-chart">
+        ${Object.entries(s.byType).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([type,count],i) => `
+          <div class="bar-row">
+            <span class="bar-label">${type}</span>
+            <div class="bar-track"><div class="bar-fill ${BAR_COLOURS[i%BAR_COLOURS.length]}" style="width:${maxType>0?Math.round((count/maxType)*100):0}%"></div></div>
+            <span class="bar-count">${count}</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+
+    <!-- By Dept -->
+    <div class="report-card">
+      <div class="report-card-title">Sales vs Aftersales</div>
+      <div class="bar-chart" style="gap:14px">
+        ${Object.entries(s.byDept).map(([dept,count]) => `
+          <div class="bar-row">
+            <span class="bar-label" style="font-size:15px;font-weight:600">${dept}</span>
+            <div class="bar-track" style="height:14px"><div class="bar-fill ${dept==="Sales"?"green":"purple"}" style="width:${s.total>0?Math.round((count/s.total)*100):0}%"></div></div>
+            <span class="bar-count">${count} <span style="font-size:11px;color:var(--gray-400)">(${s.total>0?Math.round((count/s.total)*100):0}%)</span></span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────
+function exportReport() {
+  const headers = ["Enquiry ID","Timestamp","Site","Department","Source","Enquiry Type","First Name","Last Name","Email","Phone","Vehicle Interest","Status","Assigned To","Contacted","Called","Sold"];
+  const rows = state.filtered.map(e => headers.map(h => `"${String(e[h]||"").replace(/"/g,'""')}"`).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `RMG_Enquiries_${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  showToast("CSV exported", "success");
+}
+
+// ── SYNC STATUS ──────────────────────────────────────────────────
+function setSyncStatus(state, text) {
+  const dot = document.getElementById("syncDot");
+  const label = document.getElementById("syncText");
+  dot.className = "sync-dot " + state;
+  label.textContent = text;
+}
+
+// ── TOAST ────────────────────────────────────────────────────────
+function showToast(msg, type = "") {
+  const tc = document.getElementById("toastContainer");
+  const t = document.createElement("div");
+  t.className = "toast " + type;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+function esc(v) {
+  if (v === null || v === undefined) return "";
+  return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
