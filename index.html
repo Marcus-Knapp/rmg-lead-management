@@ -348,8 +348,8 @@ textarea{height:auto;min-height:70px;padding:9px 11px;resize:vertical;line-heigh
 
 <script>
 const CONFIG = {
-  APPS_SCRIPT_URL: localStorage.getItem("rmg_api_url") || "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE",
-  SHEET_ID:        localStorage.getItem("rmg_sheet_id") || "",
+  APPS_SCRIPT_URL: localStorage.getItem("rmg_api_url") || "https://script.google.com/macros/s/AKfycbwMA9zsHuBthUWWYhwpj8f-a7HdHP6-Pen-sQA0i_jkmY24KtmNlZRWMtuOoxeJ5j7FWA/exec",
+  SHEET_ID:        localStorage.getItem("rmg_sheet_id") || "1gNCrkIKekgI8xjQTANsSeYLgUbE-GLGZc42PO2m400c",
   USER_NAME:       localStorage.getItem("rmg_user") || "User",
   PER_PAGE:        30,
   REFRESH:         300000
@@ -402,10 +402,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,9 4,5 6.5,7 9,3 11,6"/></svg>
       Reports
     </div>
-    <div class="ntab" data-v="settings" onclick="nav('settings')">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="2"/><path d="M6 1v1M6 10v1M1 6h1M10 6h1"/></svg>
-      Settings
-    </div>
+
   </div>
   <div class="nav-sep"></div>
   <div class="filters" id="filterBar">
@@ -471,32 +468,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
     <div class="rpt-scroll"><div class="rpt-grid" id="rptGrid"><div class="centered"><div class="spin"></div></div></div></div>
   </div>
 
-  <!-- SETTINGS VIEW -->
-  <div class="view" id="v-settings">
-    <div class="set-scroll"><div class="set-wrap">
-      <div style="font-family:var(--display);font-size:22px;font-weight:800;margin-bottom:18px;color:var(--text)">Settings</div>
-      <div class="set-card">
-        <div class="set-head">API Connection</div>
-        <div class="set-row col"><span class="set-key">Apps Script Web App URL</span><input type="text" id="sUrl" placeholder="https://script.google.com/macros/s/…/exec"></div>
-        <div class="set-row col"><span class="set-key">Google Sheet ID</span><input type="text" id="sSheet" placeholder="Spreadsheet ID from the URL"></div>
-        <div class="set-row" style="justify-content:flex-end"><button class="btn btn-p btn-sm" onclick="saveSet()">Save &amp; Test Connection</button></div>
-      </div>
-      <div class="set-card">
-        <div class="set-head">Your Profile</div>
-        <div class="set-row col"><span class="set-key">Your Name</span><input type="text" id="sName" placeholder="Shown in notes and audit log"></div>
-        <div class="set-row" style="justify-content:flex-end"><button class="btn btn-s btn-sm" onclick="saveProfile()">Save</button></div>
-      </div>
-      <div class="set-card">
-        <div class="set-head">Active Sites</div>
-        <div id="setSites"></div>
-      </div>
-      <div class="set-card">
-        <div class="set-head">System Info</div>
-        <div class="set-row"><span class="set-key">Version</span><span class="set-val">RMG Enquiry Hub v2.0</span></div>
-        <div class="set-row"><span class="set-key">Email Ingestion</span><span class="set-val">Every 5 minutes · readleadsall@gmail.com</span></div>
-        <div class="set-row"><span class="set-key">Auto-Refresh</span><span class="set-val">Every 5 minutes</span></div>
-      </div>
-    </div></div>
+  </div>
   </div>
 
 </div>
@@ -526,7 +498,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 <script>
 // ── BOOT ──────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  initFilters(); initSettings(); loadLeads();
+  initFilters(); loadLeads();
   setInterval(() => { if(document.visibilityState==="visible") loadLeads(true); }, CONFIG.REFRESH);
 });
 
@@ -539,16 +511,6 @@ function initFilters() {
   SRCS.forEach(s  => document.getElementById("fSrc").innerHTML  += `<option>${s}</option>`);
 }
 
-function initSettings() {
-  document.getElementById("sUrl").value   = CONFIG.APPS_SCRIPT_URL !== "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE" ? CONFIG.APPS_SCRIPT_URL : "";
-  document.getElementById("sSheet").value = CONFIG.SHEET_ID;
-  document.getElementById("sName").value  = CONFIG.USER_NAME;
-  document.getElementById("setSites").innerHTML = SITES.map(s =>
-    `<div class="set-row"><span class="set-key">${s}</span><span class="set-val" style="color:var(--green)">● Active</span></div>`
-  ).join("");
-}
-
-// ── NAV ───────────────────────────────────────────────────────────
 function nav(v) {
   document.querySelectorAll(".ntab").forEach(t => t.classList.toggle("on", t.dataset.v===v));
   document.querySelectorAll(".view").forEach(x => x.classList.toggle("on", x.id==="v-"+v));
@@ -639,7 +601,7 @@ function row(e) {
 
   return `<tr onclick="openLead('${e["Enquiry ID"]}')" ${st==="New"?"style='background:rgba(200,16,46,0.02)'":""}>
     <td><div class="td-date"><b>${dt}</b>${tm}</div></td>
-    <td class="td-name"><b>${nm}</b><small>${contact}</small></td>
+    <td class="td-name"><b>${nm}</b><small>${contact}</small>${e.Message?`<span style="display:block;font-size:11px;color:var(--ghost);margin-top:2px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic">${x(e.Message).substring(0,80)}</span>`:""}</td>
     <td class="hm" style="font-size:12px;color:var(--muted)">${e.Site||"—"}</td>
     <td class="hm"><span class="src">${e.Source||""}</span></td>
     <td class="hm"><div class="td-veh">${e["Vehicle Interest"]||"—"}<small>${e["Reg / Model"]||""}</small></div></td>
@@ -742,6 +704,7 @@ function buildDrw(e){
       <div class="f"><label>Last Name</label><input type="text" id="f_ln" value="${x(e?.["Last Name"])}"></div>
       <div class="f"><label>Email${isAnonEmail?" ⚠ Anon Proxy":""}</label><input type="email" id="f_em" value="${x(dispEmail)}" placeholder="Customer's email address" ${isAnonEmail?"style='border-color:#f59e0b;background:rgba(245,158,11,0.05)'":""}></div>
       <div class="f"><label>Customer Phone</label><input type="tel" id="f_ph" value="${x(e?.Phone)}"></div>
+      <div class="f s2"><label>Customer Message</label><textarea id="f_msg" rows="3" placeholder="Customer's message or enquiry details">${x(e?.Message)}</textarea></div>
     </div>
 
     <div class="sec-lbl">Enquiry Details</div>
@@ -805,6 +768,7 @@ async function saveLead(){
       vehicleInterest:v("f_vi"),regModel:v("f_rm"),year:v("f_yr"),budget:v("f_bu"),
       status:v("f_st"),assignedTo:v("f_as"),lostReason:v("f_lr"),followUpDate:v("f_fd"),
       contacted:cb("f_co"),called:cb("f_ca"),testDrive:cb("f_td"),sold:cb("f_so"),
+      message:v("f_msg"),
       updatedBy:CONFIG.USER_NAME
     };
     if(S.isNew){await api("addEnquiry",data);toast("Lead created","ok");}
@@ -900,20 +864,6 @@ function exportCSV(){
   const rows=S.filtered.map(e=>hds.map(h=>`"${String(e[h]||"").replace(/"/g,'""')}"`).join(","));
   const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([[hds.join(","),...rows].join("\n")],{type:"text/csv"})),download:`RMG_${new Date().toISOString().split("T")[0]}.csv`});
   a.click();toast("CSV exported","ok");
-}
-
-// ── SETTINGS ─────────────────────────────────────────────────────
-function saveSet(){
-  const url=document.getElementById("sUrl").value.trim();
-  if(!url){toast("Enter the Apps Script URL","err");return;}
-  CONFIG.APPS_SCRIPT_URL=url;CONFIG.SHEET_ID=document.getElementById("sSheet").value.trim();
-  localStorage.setItem("rmg_api_url",url);localStorage.setItem("rmg_sheet_id",CONFIG.SHEET_ID);
-  toast("Saved — testing connection…","");loadLeads();
-}
-function saveProfile(){
-  const n=document.getElementById("sName").value.trim();
-  if(!n){toast("Enter your name","err");return;}
-  CONFIG.USER_NAME=n;localStorage.setItem("rmg_user",n);toast("Profile saved","ok");
 }
 
 // ── SYNC ─────────────────────────────────────────────────────────
