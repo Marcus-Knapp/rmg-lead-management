@@ -352,7 +352,7 @@ const CONFIG = {
   SHEET_ID:        localStorage.getItem("rmg_sheet_id") || "1gNCrkIKekgI8xjQTANsSeYLgUbE-GLGZc42PO2m400c",
   USER_NAME:       localStorage.getItem("rmg_user") || "User",
   PER_PAGE:        30,
-  REFRESH:         60000
+  REFRESH:         300000
 };
 const SITES   = ["Kings Lynn","Boston","Lincoln","Worksop","Burton","Grimsby"];
 const DEPTS   = ["Sales","Aftersales"];
@@ -813,50 +813,69 @@ async function loadRpt(){
 
 function drawRpt(s){
   const sc={"New":"#1d4ed8","Contacted":"#b45309","Qualified":"#0f766e","Test Drive Booked":"#6d28d9","Awaiting Decision":"#c2410c","Sold":"#16a34a","Lost":"#dc2626","No Response":"#9898aa","Duplicate":"#c8c8d0"};
-  const maxSrc=Math.max(...Object.values(s.bySource||{}),1);
-  const maxSit=Math.max(...Object.values(s.bySite||{}),1);
-  const maxSts=Math.max(...Object.values(s.byStatus||{}),1);
-  const maxTr=Math.max(...Object.values(s.monthlyTrend||{}),1);
 
-  document.getElementById("rptGrid").innerHTML=`
-    <div class="rpt-card"><div class="rpt-ttl">Total Leads</div><div class="kpi">${s.total||0}</div><div class="kpi-sub">All matching records</div></div>
-    <div class="rpt-card"><div class="rpt-ttl">Conversion Rate</div><div class="kpi g">${s.conversionRate||0}%</div><div class="kpi-sub">${s.sold||0} sold of ${s.total||0}</div></div>
-    <div class="rpt-card wide">
-      <div class="rpt-ttl">Monthly Trend</div>
-      <div class="trend-bars">
-        ${Object.entries(s.monthlyTrend||{}).map(([m,c])=>`
-          <div class="tb-col">
-            <div class="tb-n">${c}</div>
-            <div class="tb-bar" style="height:${Math.round((c/maxTr)*52)+2}px"></div>
-            <div class="tb-lbl">${m.split(" ")[0]}</div>
-          </div>`).join("")}
-      </div>
-    </div>
-    <div class="rpt-card">
-      <div class="rpt-ttl">By Site</div>
-      ${Object.entries(s.bySite||{}).map(([k,c],i)=>`
-        <div class="bar-r"><span class="bar-lbl">${k}</span><div class="bar-t"><div class="bar-f" style="width:${Math.round((c/maxSit)*100)}%;background:${BCOLOURS[i%BCOLOURS.length]}"></div></div><span class="bar-n">${c}</span></div>`).join("")}
-    </div>
-    <div class="rpt-card">
-      <div class="rpt-ttl">By Status</div>
-      ${Object.entries(s.byStatus||{}).filter(([,c])=>c>0).map(([k,c])=>`
-        <div class="bar-r"><span class="bar-lbl">${k}</span><div class="bar-t"><div class="bar-f" style="width:${Math.round((c/maxSts)*100)}%;background:${sc[k]||"#9898aa"}"></div></div><span class="bar-n">${c}</span></div>`).join("")}
-    </div>
-    <div class="rpt-card">
-      <div class="rpt-ttl">Top Sources</div>
-      ${Object.entries(s.bySource||{}).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,c],i)=>`
-        <div class="bar-r"><span class="bar-lbl">${k}</span><div class="bar-t"><div class="bar-f" style="width:${Math.round((c/maxSrc)*100)}%;background:${BCOLOURS[i%BCOLOURS.length]}"></div></div><span class="bar-n">${c}</span></div>`).join("")}
-    </div>
-    <div class="rpt-card">
-      <div class="rpt-ttl">Sales vs Aftersales</div>
-      ${Object.entries(s.byDept||{}).map(([k,c])=>`
-        <div class="bar-r">
-          <span class="bar-lbl" style="font-size:14px;font-weight:700;color:var(--text)">${k}</span>
-          <div class="bar-t" style="height:10px"><div class="bar-f" style="width:${s.total?Math.round((c/s.total)*100):0}%;background:${k==="Sales"?"#16a34a":"#6d28d9"}"></div></div>
-          <span class="bar-n">${c} <span style="font-size:10px;color:var(--ghost);font-weight:400">${s.total?Math.round((c/s.total)*100):0}%</span></span>
-        </div>`).join("")}
-    </div>`;
+  function bars(obj, colours, limit) {
+    const entries = Object.entries(obj||{}).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]).slice(0,limit||20);
+    const max = Math.max(...entries.map(([,c])=>c),1);
+    return entries.map(([k,c],i)=>'<div class="bar-r"><span class="bar-lbl">'+k+'</span><div class="bar-t"><div class="bar-f" style="width:'+Math.round((c/max)*100)+'%;background:'+(Array.isArray(colours)?colours[i%colours.length]:(colours[k]||"#9898aa"))+'"></div></div><span class="bar-n">'+c+'</span></div>').join("");
+  }
+
+  function trendBars(obj, colour) {
+    const entries = Object.entries(obj||{});
+    const max = Math.max(...entries.map(([,c])=>c),1);
+    return '<div class="trend-bars">'+entries.map(([k,c])=>'<div class="tb-col"><div class="tb-n">'+c+'</div><div class="tb-bar" style="height:'+( Math.round((c/max)*52)+2)+'px;background:'+(colour||"var(--red)")+'"></div><div class="tb-lbl">'+k.replace("W/C ","")+'</div></div>').join("")+'</div>';
+  }
+
+  function kpiCard(title, val, sub, col) {
+    return '<div class="rpt-card"><div class="rpt-ttl">'+title+'</div><div class="kpi '+(col||'')+'">'+val+'</div><div class="kpi-sub">'+(sub||'')+'</div></div>';
+  }
+
+  function convTable(obj) {
+    return Object.entries(obj||{}).filter(([,v])=>v.total>0).sort((a,b)=>b[1].total-a[1].total).map(([k,v])=>'<div class="bar-r"><span class="bar-lbl">'+k+'</span><div class="bar-t"><div class="bar-f" style="width:'+v.rate+'%;background:var(--green)"></div></div><span class="bar-n">'+v.total+' <span style="font-size:10px;color:var(--ghost)">'+v.rate+'%</span></span></div>').join("");
+  }
+
+  var html = '';
+
+  // KPI row
+  html += kpiCard("Total Leads", s.total||0, (s.todayCount||0)+" today · "+(s.weekCount||0)+" this week · "+(s.monthCount||0)+" this month");
+  html += kpiCard("Sold", s.sold||0, (s.conversionRate||0)+"% conversion", "g");
+  html += kpiCard("Contacted", (s.contactedRate||0)+"%", (s.contacted||0)+" of "+(s.total||0)+" leads contacted");
+  html += kpiCard("Called", (s.calledRate||0)+"%", (s.called||0)+" of "+(s.total||0)+" leads called");
+  html += kpiCard("Test Drives", s.testDrives||0, "Booked or completed");
+  html += kpiCard("Follow Ups Overdue", s.overdueFollowUps||0, "Past due, still open", (s.overdueFollowUps||0)>0?"r":"");
+
+  // Trend tabs
+  html += '<div class="rpt-card wide">';
+  html += '<div style="display:flex;gap:16px;margin-bottom:14px">';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid var(--red)" id="trendTabD" onclick="switchTrend('D')">Daily (14d)</div>';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabW" onclick="switchTrend('W')">Weekly (8w)</div>';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabM" onclick="switchTrend('M')">Monthly (6m)</div>';
+  html += '</div>';
+  html += '<div id="trendD">'+trendBars(s.dailyTrend,"#c8102e")+'</div>';
+  html += '<div id="trendW" style="display:none">'+trendBars(s.weeklyTrend,"#1d4ed8")+'</div>';
+  html += '<div id="trendM" style="display:none">'+trendBars(s.monthlyTrend,"#16a34a")+'</div>';
+  html += '</div>';
+
+  // Charts
+  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by Site</div>'+bars(s.bySite,BCOLOURS)+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Conversion by Site</div>'+convTable(s.siteConversion)+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Pipeline by Status</div>'+bars(s.byStatus,sc)+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Sales vs Aftersales</div>'+Object.entries(s.byDept||{}).map(([k,c])=>'<div class="bar-r"><span class="bar-lbl" style="font-weight:600;color:var(--text)">'+k+'</span><div class="bar-t" style="height:10px"><div class="bar-f" style="width:'+(s.total?Math.round((c/s.total)*100):0)+'%;background:'+(k==="Sales"?"#16a34a":"#6d28d9")+'"></div></div><span class="bar-n">'+c+' <span style="font-size:10px;color:var(--ghost)">'+(s.total?Math.round((c/s.total)*100):0)+'%</span></span></div>').join("")+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Top Sources</div>'+bars(s.bySource,BCOLOURS,10)+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Conversion by Source</div>'+convTable(s.sourceConversion)+'</div>';
+  html += '<div class="rpt-card wide"><div class="rpt-ttl">By Enquiry Type</div>'+bars(s.byType,BCOLOURS)+'</div>';
+
+  document.getElementById("rptGrid").innerHTML = html;
 }
+
+function switchTrend(tab) {
+  ["D","W","M"].forEach(function(t) {
+    document.getElementById("trend"+t).style.display = t===tab?"block":"none";
+    var el = document.getElementById("trendTab"+t);
+    el.style.borderBottomColor = t===tab?"var(--red)":"transparent";
+  });
+}
+
 
 // ── CSV ───────────────────────────────────────────────────────────
 function exportCSV(){
