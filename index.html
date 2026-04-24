@@ -847,9 +847,9 @@ function drawRpt(s){
   // Trend tabs
   html += '<div class="rpt-card wide">';
   html += '<div style="display:flex;gap:16px;margin-bottom:14px">';
-  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid var(--red)" id="trendTabD" onclick="switchTrend('D')">Daily (14d)</div>';
-  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabW" onclick="switchTrend('W')">Weekly (8w)</div>';
-  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabM" onclick="switchTrend('M')">Monthly (6m)</div>';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid var(--red)" id="trendTabD" onclick="switchTrend(&apos;D&apos;)">Daily (14d)</div>';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabW" onclick="switchTrend(&apos;W&apos;)">Weekly (8w)</div>';
+  html += '<div class="rpt-ttl" style="margin:0;cursor:pointer;padding-bottom:4px;border-bottom:2px solid transparent" id="trendTabM" onclick="switchTrend(&apos;M&apos;)">Monthly (6m)</div>';
   html += '</div>';
   html += '<div id="trendD">'+trendBars(s.dailyTrend,"#c8102e")+'</div>';
   html += '<div id="trendW" style="display:none">'+trendBars(s.weeklyTrend,"#1d4ed8")+'</div>';
