@@ -25,13 +25,13 @@
   --ink2: #49454F;
   --ink3: #79747E;
   --ghost: #AEA9B4;
-  --divider: #E7E0EC;
+  --divider: #E0E0E0;
 
   /* Surfaces */
-  --page: #F7F2FA;
+  --page: #F1F3F4;
   --surface: #FFFFFF;
-  --surface2: #F4EFF4;
-  --surface3: #EDE8F2;
+  --surface2: #F8F9FA;
+  --surface3: #ECEFF1;
 
   /* Semantic */
   --blue: #1A73E8; --blue-bg: #E8F0FE; --blue-border: #C5D8FB;
@@ -1161,7 +1161,7 @@ function buildDrw(e){
       <div class="f"><label>Last Name</label><input type="text" id="f_ln" value="${x(e?.["Last Name"])}"></div>
       <div class="f"><label>Email${isAnonEmail?" ⚠ Anon Proxy":""}</label><input type="email" id="f_em" value="${x(dispEmail)}" placeholder="Customer's email address" ${isAnonEmail?"style='border-color:#f59e0b;background:rgba(245,158,11,0.05)'":""}></div>
       <div class="f"><label>Customer Phone</label><input type="tel" id="f_ph" value="${x(e?.Phone)}"></div>
-      <div class="f s2"><label>Customer Message</label><textarea id="f_msg" rows="3" placeholder="Customer's message or enquiry details">${x(e?.Message)}</textarea></div>
+      <div class="f s2"><label>Customer Message</label><textarea id="f_msg" rows="5" placeholder="Customer's message or enquiry details" style="min-height:100px">${x(e?.Message)}</textarea></div>
     </div>
 
     <div class="sec-lbl">Enquiry Details</div>
@@ -1247,7 +1247,7 @@ async function loadNotes(id){
       const tp=n["Note Type"]||"General";
       return `<div class="note ${tp==="Contact Attempt"?"contact":tp==="Sale Update"?"sale":""}">
         <div class="note-row"><div style="display:flex;gap:8px;align-items:center"><span class="note-auth">${n.Author||"—"}</span><span class="note-type">${tp}</span></div><span class="note-ts">${ts}</span></div>
-        <div class="note-txt">${(n["Note Text"]||"").substring(0,500)}</div>
+        <div class="note-txt">${(n["Note Text"]||"")}</div>
       </div>`;
     }).join("");
   }catch(e){const el=document.getElementById("notesList");if(el)el.innerHTML='<p style="color:var(--red);font-size:12px">Could not load notes.</p>';}
