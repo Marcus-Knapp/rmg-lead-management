@@ -1147,11 +1147,11 @@ function openDrw(){document.getElementById("ovl").classList.add("on");document.g
 function closeDrw(){document.getElementById("ovl").classList.remove("on");document.getElementById("drw").classList.remove("on");document.body.style.overflow="";}
 
 async function markSpam(){
-  if(!S.open) return;
+  if(!S.curId) return;
   if(!confirm("Mark this as Spam and hide from the leads list?")) return;
   try{
     await api("updateEnquiry",{
-      enquiryId:S.open["Enquiry ID"],
+      enquiryId:S.curId,
       updates:{status:"Duplicate",lostReason:"Spam / Marketing Email"},
       updatedBy:CONFIG.USER_NAME
     });
