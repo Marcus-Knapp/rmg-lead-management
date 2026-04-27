@@ -1061,7 +1061,7 @@ function row(e) {
   const sol = e.Sold  ===true||e.Sold  ==="TRUE";
   const contact = customerContact(e);
 
-  return `<tr onclick="openLead('${e["Enquiry ID"]}')" ${st==="New"?"style='background:rgba(200,16,46,0.02)'":""}>
+  return `<tr data-id="${e["Enquiry ID"]}" onclick="openLead(this.dataset.id)" ${st==="New"?"style='background:rgba(200,16,46,0.02)'":""}>
     <td><div class="td-date"><b>${dt}</b>${tm}</div></td>
     <td class="td-name"><b>${nm}</b><small>${contact}</small>${e.Message?`<span style="display:block;font-size:11px;color:var(--ghost);margin-top:2px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic">${x(e.Message).substring(0,80)}</span>`:""}</td>
     <td class="hm" style="font-size:12px;color:var(--muted)">${e.Site||"—"}</td>
