@@ -800,6 +800,7 @@ textarea { height: auto; min-height: 72px; padding: 10px 12px; resize: vertical;
   #drw.on { transform: translateY(0); }
 }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
 
@@ -1298,84 +1299,226 @@ async function loadRpt(){
 }
 
 function drawRpt(s){
-  function bars(obj, colours, limit) {
+  // Chart.js colour palette
+  const C = {
+    blue:   "#185FA5", blueL: "#B5D4F4",
+    green:  "#0F6E56", greenL:"#9FE1CB",
+    purple: "#534AB7", purpleL:"#AFA9EC",
+    amber:  "#BA7517", amberL:"#FAC775",
+    coral:  "#993C1D", coralL:"#F5C4B3"
+  };
+  const SITE_COLOURS  = [C.blue, C.green, C.purple, C.amber, C.coral, "#888780"];
+  const SRC_COLOURS   = [C.blue, C.green, C.purple, C.amber, C.coral];
+  const TYPE_COLOURS  = [C.blue, C.green, C.purple, C.amber, C.coral, "#888780"];
+
+  function destroyCharts() {
+    ["rptHour","rptDept","rptTrend","rptWeek","rptSrcMix","rptSource","rptType","rptSite"].forEach(id => {
+      const inst = Chart.getChart(id);
+      if (inst) inst.destroy();
+    });
+  }
+  destroyCharts();
+
+  // ── metric cards ──────────────────────────────────────────────
+  function metric(label, val, sub) {
+    return '<div style="background:var(--surf);border-radius:var(--r);padding:14px 16px">'
+      +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:6px">'+label+'</div>'
+      +'<div style="font-size:26px;font-weight:600;line-height:1;color:var(--ink)">'+val+'</div>'
+      +(sub?'<div style="font-size:12px;color:var(--ink3);margin-top:4px">'+sub+'</div>':'')
+      +'</div>';
+  }
+
+  // ── horizontal bar ────────────────────────────────────────────
+  function hbar(obj, colours, limit) {
     const entries = Object.entries(obj||{}).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]).slice(0,limit||20);
     const max = Math.max(...entries.map(([,c])=>c),1);
-    return entries.map(([k,c],i)=>'<div class="bar-r"><span class="bar-lbl">'+k+'</span><div class="bar-t"><div class="bar-f" style="width:'+Math.round((c/max)*100)+'%;background:'+(Array.isArray(colours)?colours[i%colours.length]:(colours[k]||"#9898aa"))+'"></div></div><span class="bar-n">'+c+'</span></div>').join("");
+    return entries.map(([k,c],i)=>
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      +'<span style="font-size:13px;min-width:110px;flex-shrink:0;color:var(--ink)">'+k+'</span>'
+      +'<div style="flex:1;height:8px;background:var(--divider);border-radius:4px;overflow:hidden">'
+      +'<div style="height:100%;width:'+Math.round((c/max)*100)+'%;background:'+(colours[i%colours.length]||C.blue)+';border-radius:4px"></div>'
+      +'</div>'
+      +'<span style="font-size:12px;color:var(--ink3);min-width:24px;text-align:right">'+c+'</span>'
+      +'</div>'
+    ).join("");
   }
 
-  function trendBars(obj, colour) {
-    const entries = Object.entries(obj||{});
-    const max = Math.max(...entries.map(([,c])=>c),1);
-    return '<div class="trend-bars">'+entries.map(([k,c])=>'<div class="tb-col"><div class="tb-n">'+c+'</div><div class="tb-bar" style="height:'+(Math.round((c/max)*52)+2)+'px;background:'+(colour||"var(--red)")+'"></div><div class="tb-lbl">'+k.replace("W/C ","")+'</div></div>').join("")+'</div>';
-  }
+  var html = "";
 
-  function kpiCard(title, val, sub, col) {
-    return '<div class="rpt-card"><div class="rpt-ttl">'+title+'</div><div class="kpi '+(col||'')+'">'+val+'</div><div class="kpi-sub">'+(sub||'')+'</div></div>';
-  }
-
-  var html = '';
-
-  // KPI row — volume focused, no conversion/sold
-  html += kpiCard("Total Leads", s.total||0, (s.todayCount||0)+" today · "+(s.weekCount||0)+" this week · "+(s.monthCount||0)+" this month");
-  html += kpiCard("New", s.byStatus&&s.byStatus["New"]||0, "Awaiting action");
-  html += kpiCard("Follow Ups Overdue", s.overdueFollowUps||0, "Past due date, still open", (s.overdueFollowUps||0)>0?"r":"");
-  html += kpiCard("Test Drives", s.testDrives||0, "Booked or completed");
-  html += kpiCard("Sales Leads", s.salesRows||0, "Department: Sales");
-  html += kpiCard("Aftersales Leads", s.aftersalesRows||0, "Department: Aftersales");
-
-  // Trend chart
-  html += '<div class="rpt-card wide">';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
-  html += '<div class="rpt-ttl" style="margin:0">Lead Volume Trend</div>';
-  html += '<div style="display:flex;gap:4px">';
-  html += '<button class="trend-tab on" id="trendTabD" onclick="switchTrend(&apos;D&apos;)">14 days</button>';
-  html += '<button class="trend-tab" id="trendTabW" onclick="switchTrend(&apos;W&apos;)">8 weeks</button>';
-  html += '<button class="trend-tab" id="trendTabM" onclick="switchTrend(&apos;M&apos;)">6 months</button>';
-  html += '</div></div>';
-  html += '<div id="trendD">'+trendBars(s.dailyTrend,"#1A73E8")+'</div>';
-  html += '<div id="trendW" style="display:none">'+trendBars(s.weeklyTrend,"#34A853")+'</div>';
-  html += '<div id="trendM" style="display:none">'+trendBars(s.monthlyTrend,"#9C27B0")+'</div>';
+  // ── KPI row ───────────────────────────────────────────────────
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">';
+  html += metric("Total leads", s.total||0, (s.todayCount||0)+" today");
+  html += metric("This week", s.weekCount||0, "last 7 days");
+  html += metric("This month", s.monthCount||0, "last 30 days");
+  html += metric("Sales leads", s.salesRows||0, "dept: sales");
+  html += metric("Aftersales", s.aftersalesRows||0, "dept: aftersales");
+  html += metric("New — unactioned", (s.byStatus&&s.byStatus["New"])||0, "awaiting contact");
   html += '</div>';
 
-  // Leads by site
-  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by Site</div>'+bars(s.bySite,BCOLOURS)+'</div>';
+  // ── row 1: daily trend + hourly heatmap ───────────────────────
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">';
 
-  // Top sources
-  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by Source</div>'+bars(s.bySource,BCOLOURS,10)+'</div>';
+  // Daily trend
+  html += '<div class="rpt-card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +'<div class="rpt-ttl" style="margin:0">Lead volume — last 14 days</div>'
+    +'</div>'
+    +'<div style="position:relative;height:160px"><canvas id="rptTrend"></canvas></div>'
+    +'</div>';
 
-  // Sales vs Aftersales
-  html += '<div class="rpt-card"><div class="rpt-ttl">Sales vs Aftersales</div>';
-  html += Object.entries(s.byDept||{}).map(function(e){
-    var k=e[0],c=e[1];
-    return '<div class="bar-r"><span class="bar-lbl" style="font-weight:600;color:var(--ink)">'+k+'</span><div class="bar-t" style="height:10px"><div class="bar-f" style="width:'+(s.total?Math.round((c/s.total)*100):0)+'%;background:'+(k==="Sales"?"#34A853":"#9C27B0")+'"></div></div><span class="bar-n">'+c+' <span style="font-size:10px;color:var(--ink3)">'+(s.total?Math.round((c/s.total)*100):0)+'%</span></span></div>';
-  }).join("");
+  // Hourly heatmap
+  html += '<div class="rpt-card"><div class="rpt-ttl">When leads arrive — by hour</div>'
+    +'<div style="position:relative;height:120px;margin-top:8px"><canvas id="rptHour"></canvas></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(12,1fr);margin-top:4px">'
+    +['6am','7','8','9','10','11','12pm','1','2','3','4','5'].map(l=>'<div style="font-size:9px;color:var(--ink3);text-align:center">'+l+'</div>').join("")
+    +'</div></div>';
+
+  html += '</div>'; // end row 1
+
+  // ── row 2: this vs last week + dept donut ─────────────────────
+  html += '<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">';
+
+  // Week comparison
+  html += '<div class="rpt-card"><div class="rpt-ttl">This week vs last week</div>'
+    +'<div style="display:flex;gap:16px;margin-bottom:8px">'
+    +'<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)">'
+    +'<span style="width:10px;height:10px;border-radius:2px;background:'+C.blue+'"></span>This week</span>'
+    +'<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)">'
+    +'<span style="width:10px;height:10px;border-radius:2px;background:'+C.blueL+'"></span>Last week</span>'
+    +'</div>'
+    +'<div style="position:relative;height:150px"><canvas id="rptWeek"></canvas></div>'
+    +'</div>';
+
+  // Dept donut
+  const sales = s.byDept&&s.byDept["Sales"]||0;
+  const after = s.byDept&&s.byDept["Aftersales"]||0;
+  const total = s.total||1;
+  html += '<div class="rpt-card"><div class="rpt-ttl">Sales vs aftersales</div>'
+    +'<div style="position:relative;height:150px"><canvas id="rptDept"></canvas></div>'
+    +'<div style="display:flex;justify-content:center;gap:16px;margin-top:8px">'
+    +'<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)">'
+    +'<span style="width:10px;height:10px;border-radius:2px;background:'+C.blue+'"></span>Sales '+Math.round((sales/total)*100)+'%</span>'
+    +'<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)">'
+    +'<span style="width:10px;height:10px;border-radius:2px;background:'+C.green+'"></span>Aftersales '+Math.round((after/total)*100)+'%</span>'
+    +'</div></div>';
+
+  html += '</div>'; // end row 2
+
+  // ── row 3: by source + by type ────────────────────────────────
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by source</div>'+hbar(s.bySource,SRC_COLOURS)+'</div>';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by enquiry type</div>'+hbar(s.byType,TYPE_COLOURS)+'</div>';
   html += '</div>';
 
-  // By enquiry type
-  html += '<div class="rpt-card wide"><div class="rpt-ttl">Leads by Enquiry Type</div>'+bars(s.byType,BCOLOURS)+'</div>';
+  // ── row 4: by site + source mix by site ───────────────────────
+  html += '<div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px">';
+  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by site</div>'+hbar(s.bySite,SITE_COLOURS)+'</div>';
 
-  // Lead status overview — simple breakdown, no conversion focus
-  html += '<div class="rpt-card wide"><div class="rpt-ttl">Lead Status Overview</div>';
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:4px">';
-  const statusColours = {"New":"#1A73E8","Contacted":"#E37400","Qualified":"#007B83","Test Drive Booked":"#7B61FF","Awaiting Decision":"#E65100","Sold":"#137333","Lost":"#D0021B","No Response":"#79747E","Duplicate":"#AEA9B4"};
-  Object.entries(s.byStatus||{}).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
-    var k=e[0],c=e[1];
-    html += '<div style="background:var(--page);border-radius:var(--r);padding:12px 14px;border:1.5px solid var(--divider)">';
-    html += '<div style="font-size:22px;font-weight:700;color:'+(statusColours[k]||"var(--ink)")+';letter-spacing:-0.03em">'+c+'</div>';
-    html += '<div style="font-size:11px;font-weight:600;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:0.06em">'+k+'</div>';
-    html += '</div>';
-  });
-  html += '</div></div>';
+  // Source mix stacked bar
+  html += '<div class="rpt-card"><div class="rpt-ttl">Source mix by site</div>'
+    +'<div style="position:relative;height:180px"><canvas id="rptSrcMix"></canvas></div>'
+    +'<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">'
+    +["Website","Autotrader","AutoConverse","Keyloop","CarGurus"].map((s,i)=>
+      '<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3)">'
+      +'<span style="width:9px;height:9px;border-radius:2px;background:'+SRC_COLOURS[i]+'"></span>'+s+'</span>'
+    ).join("")
+    +'</div></div>';
+
+  html += '</div>'; // end row 4
 
   document.getElementById("rptGrid").innerHTML = html;
-}
 
-function switchTrend(tab) {
-  ["D","W","M"].forEach(function(t) {
-    document.getElementById("trend"+t).style.display = t===tab?"block":"none";
-    var el = document.getElementById("trendTab"+t);
-    el.className = t===tab ? "trend-tab on" : "trend-tab";
+  // ── Chart.js charts ───────────────────────────────────────────
+  const baseOpts = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{display:false},ticks:{font:{size:10},color:"#888"}},
+      y:{grid:{color:"rgba(128,128,128,0.12)"},ticks:{font:{size:10},color:"#888"}}
+    }
+  };
+
+  // Daily trend line
+  new Chart(document.getElementById("rptTrend"),{
+    type:"line",
+    data:{
+      labels: Object.keys(s.dailyTrend||{}),
+      datasets:[{
+        data: Object.values(s.dailyTrend||{}),
+        borderColor:C.blue, backgroundColor:"rgba(24,95,165,0.08)",
+        fill:true, tension:0.4, pointRadius:2, borderWidth:2
+      }]
+    },
+    options:{...baseOpts, scales:{
+      x:{grid:{display:false},ticks:{font:{size:9},color:"#888",maxTicksLimit:7,autoSkip:true}},
+      y:{grid:{color:"rgba(128,128,128,0.12)"},ticks:{font:{size:10},color:"#888",stepSize:1}}
+    }}
+  });
+
+  // Hourly bar — hours 6-17 (6am to 5pm covers most leads)
+  const hourLabels = [6,7,8,9,10,11,12,13,14,15,16,17];
+  const hourData   = hourLabels.map(h => (s.byHour&&s.byHour[h])||0);
+  new Chart(document.getElementById("rptHour"),{
+    type:"bar",
+    data:{
+      labels: hourLabels.map(String),
+      datasets:[{data:hourData, backgroundColor:C.blue, borderRadius:3}]
+    },
+    options:{...baseOpts, scales:{
+      x:{display:false},
+      y:{display:false}
+    }}
+  });
+
+  // Week comparison
+  const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  new Chart(document.getElementById("rptWeek"),{
+    type:"bar",
+    data:{
+      labels: days,
+      datasets:[
+        {label:"This week", data:days.map(d=>(s.thisWeek&&s.thisWeek[d])||0), backgroundColor:C.blue, borderRadius:3},
+        {label:"Last week", data:days.map(d=>(s.lastWeek&&s.lastWeek[d])||0), backgroundColor:C.blueL, borderRadius:3}
+      ]
+    },
+    options:{...baseOpts}
+  });
+
+  // Dept donut
+  new Chart(document.getElementById("rptDept"),{
+    type:"doughnut",
+    data:{
+      labels:["Sales","Aftersales"],
+      datasets:[{
+        data:[sales, after],
+        backgroundColor:[C.blue, C.green],
+        borderWidth:0, hoverOffset:4
+      }]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, cutout:"68%"}
+  });
+
+  // Source mix by site — stacked horizontal bar
+  const srcKeys  = ["Website","Autotrader","AutoConverse","Keyloop","CarGurus"];
+  const siteKeys = Object.keys(s.bySite||{}).filter(k => (s.bySite[k]||0)>0);
+  new Chart(document.getElementById("rptSrcMix"),{
+    type:"bar",
+    data:{
+      labels: siteKeys,
+      datasets: srcKeys.map((src,i) => ({
+        label: src,
+        data:  siteKeys.map(site => (s.sourceBySite&&s.sourceBySite[site]&&s.sourceBySite[site][src])||0),
+        backgroundColor: SRC_COLOURS[i],
+        borderRadius: 3
+      }))
+    },
+    options:{...baseOpts,
+      indexAxis:"y",
+      scales:{
+        x:{stacked:true, grid:{color:"rgba(128,128,128,0.12)"}, ticks:{font:{size:10},color:"#888"}},
+        y:{stacked:true, grid:{display:false}, ticks:{font:{size:11},color:"#888"}}
+      }
+    }
   });
 }
 
