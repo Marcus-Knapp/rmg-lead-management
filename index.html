@@ -876,11 +876,12 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
 <!-- STATS BAR -->
 <div id="statsbar">
-  <div class="stat"><div class="stat-n" id="stT">—</div><div class="stat-l">Total</div></div>
-  <div class="stat"><div class="stat-n red" id="stN">—</div><div class="stat-l">New Today</div></div>
-  <div class="stat"><div class="stat-n grn" id="stS">—</div><div class="stat-l">Sold</div><div class="stat-s" id="stC">—</div></div>
+  <div class="stat"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads</div><div class="stat-s" id="stToday">— today</div></div>
+  <div class="stat"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week</div></div>
+  <div class="stat"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month</div></div>
+  <div class="stat"><div class="stat-n red" id="stN">—</div><div class="stat-l">New</div><div class="stat-s">Awaiting action</div></div>
   <div class="stat"><div class="stat-n amb" id="stF">—</div><div class="stat-l">Follow Up Due</div></div>
-  <div class="stat hm"><div class="stat-n" id="stE">—</div><div class="stat-l">Via Email</div><div class="stat-s" id="stR">—</div></div>
+  <div class="stat hm"><div class="stat-n" id="stTD">—</div><div class="stat-l">Test Drives</div></div>
 </div>
 
 <!-- MAIN -->
@@ -1105,18 +1106,23 @@ function goPg(p){const mx=Math.ceil(S.filtered.length/CONFIG.PER_PAGE);if(p<1||p
 
 // ── STATS ─────────────────────────────────────────────────────────
 function calcStats() {
-  const now=new Date();now.setHours(0,0,0,0);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const weekAgo=new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
+  const monthAgo=new Date(now); monthAgo.setDate(monthAgo.getDate()-30);
   const total=S.filtered.length;
   const today=S.filtered.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
-  const sold=S.filtered.filter(e=>e.Status==="Sold").length;
+  const week=S.filtered.filter(e=>new Date(e.Timestamp||0)>=weekAgo).length;
+  const month=S.filtered.filter(e=>new Date(e.Timestamp||0)>=monthAgo).length;
+  const newLeads=S.filtered.filter(e=>e.Status==="New").length;
   const fu=S.filtered.filter(e=>{if(!e["Follow Up Date"])return false;const d=new Date(e["Follow Up Date"]);d.setHours(0,0,0,0);return d<=now&&e.Status!=="Sold"&&e.Status!=="Lost";}).length;
-  const email=S.filtered.filter(e=>e["Updated By"]==="Email Ingestion").length;
+  const td=S.filtered.filter(e=>e["Test Drive"]===true).length;
   document.getElementById("stT").textContent=total.toLocaleString();
-  document.getElementById("stN").textContent=today;
-  document.getElementById("stS").textContent=sold;
-  document.getElementById("stC").textContent=total?Math.round((sold/total)*100)+"% conversion":"";
+  document.getElementById("stToday").textContent=today+" today";
+  document.getElementById("stW").textContent=week;
+  document.getElementById("stM").textContent=month;
+  document.getElementById("stN").textContent=newLeads;
   document.getElementById("stF").textContent=fu;
-  document.getElementById("stE").textContent=email;
+  document.getElementById("stTD").textContent=td;
 }
 
 async function loadIngestion(){
@@ -1124,7 +1130,7 @@ async function loadIngestion(){
     const r=await api("getConfig"); const c=r.config||{};
     if(c.LAST_INGESTION_RUN){
       const d=new Date(c.LAST_INGESTION_RUN), m=Math.round((Date.now()-d)/60000);
-      document.getElementById("stR").textContent="Last: "+(m<2?"just now":m<60?m+"m ago":d.toLocaleDateString("en-GB"));
+      // stR removed
     }
   }catch(e){}
 }
@@ -1269,8 +1275,6 @@ async function loadRpt(){
 }
 
 function drawRpt(s){
-  const sc={"New":"#1d4ed8","Contacted":"#b45309","Qualified":"#0f766e","Test Drive Booked":"#6d28d9","Awaiting Decision":"#c2410c","Sold":"#16a34a","Lost":"#dc2626","No Response":"#9898aa","Duplicate":"#c8c8d0"};
-
   function bars(obj, colours, limit) {
     const entries = Object.entries(obj||{}).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]).slice(0,limit||20);
     const max = Math.max(...entries.map(([,c])=>c),1);
@@ -1280,29 +1284,24 @@ function drawRpt(s){
   function trendBars(obj, colour) {
     const entries = Object.entries(obj||{});
     const max = Math.max(...entries.map(([,c])=>c),1);
-    return '<div class="trend-bars">'+entries.map(([k,c])=>'<div class="tb-col"><div class="tb-n">'+c+'</div><div class="tb-bar" style="height:'+( Math.round((c/max)*52)+2)+'px;background:'+(colour||"var(--red)")+'"></div><div class="tb-lbl">'+k.replace("W/C ","")+'</div></div>').join("")+'</div>';
+    return '<div class="trend-bars">'+entries.map(([k,c])=>'<div class="tb-col"><div class="tb-n">'+c+'</div><div class="tb-bar" style="height:'+(Math.round((c/max)*52)+2)+'px;background:'+(colour||"var(--red)")+'"></div><div class="tb-lbl">'+k.replace("W/C ","")+'</div></div>').join("")+'</div>';
   }
 
   function kpiCard(title, val, sub, col) {
     return '<div class="rpt-card"><div class="rpt-ttl">'+title+'</div><div class="kpi '+(col||'')+'">'+val+'</div><div class="kpi-sub">'+(sub||'')+'</div></div>';
   }
 
-  function convTable(obj) {
-    return Object.entries(obj||{}).filter(([,v])=>v.total>0).sort((a,b)=>b[1].total-a[1].total).map(([k,v])=>'<div class="bar-r"><span class="bar-lbl">'+k+'</span><div class="bar-t"><div class="bar-f" style="width:'+v.rate+'%;background:var(--green)"></div></div><span class="bar-n">'+v.total+' <span style="font-size:10px;color:var(--ghost)">'+v.rate+'%</span></span></div>').join("");
-  }
-
   var html = '';
-  // Style: new rows get subtle warm tint
 
-  // KPI row
+  // KPI row — volume focused, no conversion/sold
   html += kpiCard("Total Leads", s.total||0, (s.todayCount||0)+" today · "+(s.weekCount||0)+" this week · "+(s.monthCount||0)+" this month");
-  html += kpiCard("Sold", s.sold||0, (s.conversionRate||0)+"% conversion", "g");
-  html += kpiCard("Contacted", (s.contactedRate||0)+"%", (s.contacted||0)+" of "+(s.total||0)+" leads contacted");
-  html += kpiCard("Called", (s.calledRate||0)+"%", (s.called||0)+" of "+(s.total||0)+" leads called");
+  html += kpiCard("New", s.byStatus&&s.byStatus["New"]||0, "Awaiting action");
+  html += kpiCard("Follow Ups Overdue", s.overdueFollowUps||0, "Past due date, still open", (s.overdueFollowUps||0)>0?"r":"");
   html += kpiCard("Test Drives", s.testDrives||0, "Booked or completed");
-  html += kpiCard("Follow Ups Overdue", s.overdueFollowUps||0, "Past due, still open", (s.overdueFollowUps||0)>0?"r":"");
+  html += kpiCard("Sales Leads", s.salesRows||0, "Department: Sales");
+  html += kpiCard("Aftersales Leads", s.aftersalesRows||0, "Department: Aftersales");
 
-  // Trend tabs
+  // Trend chart
   html += '<div class="rpt-card wide">';
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
   html += '<div class="rpt-ttl" style="margin:0">Lead Volume Trend</div>';
@@ -1311,19 +1310,40 @@ function drawRpt(s){
   html += '<button class="trend-tab" id="trendTabW" onclick="switchTrend(&apos;W&apos;)">8 weeks</button>';
   html += '<button class="trend-tab" id="trendTabM" onclick="switchTrend(&apos;M&apos;)">6 months</button>';
   html += '</div></div>';
-  html += '<div id="trendD">'+trendBars(s.dailyTrend,"#c8102e")+'</div>';
-  html += '<div id="trendW" style="display:none">'+trendBars(s.weeklyTrend,"#1d4ed8")+'</div>';
-  html += '<div id="trendM" style="display:none">'+trendBars(s.monthlyTrend,"#16a34a")+'</div>';
+  html += '<div id="trendD">'+trendBars(s.dailyTrend,"#1A73E8")+'</div>';
+  html += '<div id="trendW" style="display:none">'+trendBars(s.weeklyTrend,"#34A853")+'</div>';
+  html += '<div id="trendM" style="display:none">'+trendBars(s.monthlyTrend,"#9C27B0")+'</div>';
   html += '</div>';
 
-  // Charts
+  // Leads by site
   html += '<div class="rpt-card"><div class="rpt-ttl">Leads by Site</div>'+bars(s.bySite,BCOLOURS)+'</div>';
-  html += '<div class="rpt-card"><div class="rpt-ttl">Conversion by Site</div>'+convTable(s.siteConversion)+'</div>';
-  html += '<div class="rpt-card"><div class="rpt-ttl">Pipeline by Status</div>'+bars(s.byStatus,sc)+'</div>';
-  html += '<div class="rpt-card"><div class="rpt-ttl">Sales vs Aftersales</div>'+Object.entries(s.byDept||{}).map(([k,c])=>'<div class="bar-r"><span class="bar-lbl" style="font-weight:600;color:var(--text)">'+k+'</span><div class="bar-t" style="height:10px"><div class="bar-f" style="width:'+(s.total?Math.round((c/s.total)*100):0)+'%;background:'+(k==="Sales"?"#16a34a":"#6d28d9")+'"></div></div><span class="bar-n">'+c+' <span style="font-size:10px;color:var(--ghost)">'+(s.total?Math.round((c/s.total)*100):0)+'%</span></span></div>').join("")+'</div>';
-  html += '<div class="rpt-card"><div class="rpt-ttl">Top Sources</div>'+bars(s.bySource,BCOLOURS,10)+'</div>';
-  html += '<div class="rpt-card"><div class="rpt-ttl">Conversion by Source</div>'+convTable(s.sourceConversion)+'</div>';
-  html += '<div class="rpt-card wide"><div class="rpt-ttl">By Enquiry Type</div>'+bars(s.byType,BCOLOURS)+'</div>';
+
+  // Top sources
+  html += '<div class="rpt-card"><div class="rpt-ttl">Leads by Source</div>'+bars(s.bySource,BCOLOURS,10)+'</div>';
+
+  // Sales vs Aftersales
+  html += '<div class="rpt-card"><div class="rpt-ttl">Sales vs Aftersales</div>';
+  html += Object.entries(s.byDept||{}).map(function(e){
+    var k=e[0],c=e[1];
+    return '<div class="bar-r"><span class="bar-lbl" style="font-weight:600;color:var(--ink)">'+k+'</span><div class="bar-t" style="height:10px"><div class="bar-f" style="width:'+(s.total?Math.round((c/s.total)*100):0)+'%;background:'+(k==="Sales"?"#34A853":"#9C27B0")+'"></div></div><span class="bar-n">'+c+' <span style="font-size:10px;color:var(--ink3)">'+(s.total?Math.round((c/s.total)*100):0)+'%</span></span></div>';
+  }).join("");
+  html += '</div>';
+
+  // By enquiry type
+  html += '<div class="rpt-card wide"><div class="rpt-ttl">Leads by Enquiry Type</div>'+bars(s.byType,BCOLOURS)+'</div>';
+
+  // Lead status overview — simple breakdown, no conversion focus
+  html += '<div class="rpt-card wide"><div class="rpt-ttl">Lead Status Overview</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:4px">';
+  const statusColours = {"New":"#1A73E8","Contacted":"#E37400","Qualified":"#007B83","Test Drive Booked":"#7B61FF","Awaiting Decision":"#E65100","Sold":"#137333","Lost":"#D0021B","No Response":"#79747E","Duplicate":"#AEA9B4"};
+  Object.entries(s.byStatus||{}).filter(function(e){return e[1]>0;}).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+    var k=e[0],c=e[1];
+    html += '<div style="background:var(--page);border-radius:var(--r);padding:12px 14px;border:1.5px solid var(--divider)">';
+    html += '<div style="font-size:22px;font-weight:700;color:'+(statusColours[k]||"var(--ink)")+';letter-spacing:-0.03em">'+c+'</div>';
+    html += '<div style="font-size:11px;font-weight:600;color:var(--ink3);margin-top:3px;text-transform:uppercase;letter-spacing:0.06em">'+k+'</div>';
+    html += '</div>';
+  });
+  html += '</div></div>';
 
   document.getElementById("rptGrid").innerHTML = html;
 }
