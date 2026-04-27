@@ -1152,7 +1152,7 @@ async function markSpam(){
   try{
     await api("updateEnquiry",{
       enquiryId:S.curId,
-      updates:{status:"Duplicate",lostReason:"Spam / Marketing Email"},
+      updates:{status:"Duplicate",lostReason:"Other"},
       updatedBy:CONFIG.USER_NAME
     });
     toast("Marked as spam","ok");
