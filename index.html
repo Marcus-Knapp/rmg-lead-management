@@ -1151,16 +1151,20 @@ function closeDrw(){document.getElementById("ovl").classList.remove("on");docume
 
 async function markSpam(){
   if(!S.curId) return;
-  if(!confirm("Mark this as Spam and hide from the leads list?")) return;
+  if(!confirm("Permanently delete this spam lead? This cannot be undone.")) return;
   try{
-    await api("updateEnquiry",{
+    await api("deleteEnquiry",{
       enquiryId:S.curId,
-      updates:{status:"Duplicate",lostReason:"Other"},
-      updatedBy:CONFIG.USER_NAME
+      updatedBy:CONFIG.USER_NAME,
+      hardDelete:true
     });
-    toast("Marked as spam","ok");
+    toast("Spam lead deleted","ok");
+    // Remove from local data immediately — no reload needed
+    S.all      = S.all.filter(e=>e["Enquiry ID"]!==S.curId);
+    S.filtered = S.filtered.filter(e=>e["Enquiry ID"]!==S.curId);
     closeDrw();
-    setTimeout(loadLeads, 1000); // small delay to ensure sheet write completes
+    render();
+    calcStats();
   }catch(err){ toast("Error: "+err.message,"err"); }
 }
 
