@@ -994,7 +994,10 @@ async function loadLeads(silent=false) {
   setSync("spin","Syncing…");
   try {
     const r = await api("getEnquiries", getParams());
-    S.all = r.enquiries||[]; S.filtered=[...S.all];
+    S.all = r.enquiries||[];
+    // Hide Duplicate/Spam leads unless user has specifically filtered for them
+    const statusFilter = v("fStat");
+    S.filtered = statusFilter ? [...S.all] : S.all.filter(e => e["Status"] !== "Duplicate");
     setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
     render(); calcStats(); loadIngestion();
   } catch(e) {
@@ -1157,7 +1160,7 @@ async function markSpam(){
     });
     toast("Marked as spam","ok");
     closeDrw();
-    loadLeads();
+    setTimeout(loadLeads, 1000); // small delay to ensure sheet write completes
   }catch(err){ toast("Error: "+err.message,"err"); }
 }
 
