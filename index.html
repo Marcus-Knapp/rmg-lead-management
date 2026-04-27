@@ -946,6 +946,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
   </div>
   <div class="drw-body" id="drwBody"></div>
   <div class="drw-foot">
+    <button class="btn" style="background:#fff1f2;color:#be123c;border:1.5px solid #fecdd3;margin-right:auto" onclick="markSpam()">&#128683; Mark as Spam</button>
     <button class="btn btn-s" onclick="closeDrw()">Cancel</button>
     <button class="btn btn-p" id="drwSave" onclick="saveLead()">Save Lead</button>
   </div>
@@ -1144,6 +1145,21 @@ function openLead(id){
 function newLead(){S.curId=null;S.isNew=true;buildDrw(null);openDrw();}
 function openDrw(){document.getElementById("ovl").classList.add("on");document.getElementById("drw").classList.add("on");document.body.style.overflow="hidden";}
 function closeDrw(){document.getElementById("ovl").classList.remove("on");document.getElementById("drw").classList.remove("on");document.body.style.overflow="";}
+
+async function markSpam(){
+  if(!S.open) return;
+  if(!confirm("Mark this as Spam and hide from the leads list?")) return;
+  try{
+    await api("updateEnquiry",{
+      enquiryId:S.open["Enquiry ID"],
+      updates:{status:"Duplicate",lostReason:"Spam / Marketing Email"},
+      updatedBy:CONFIG.USER_NAME
+    });
+    toast("Marked as spam","ok");
+    closeDrw();
+    loadLeads();
+  }catch(err){ toast("Error: "+err.message,"err"); }
+}
 
 function buildDrw(e){
   const nm=e?([e["First Name"],e["Last Name"]].filter(Boolean).join(" ")||e["Enquiry ID"]):"New Lead";
