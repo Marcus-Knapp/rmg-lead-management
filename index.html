@@ -1147,6 +1147,16 @@ function openLead(id){
 }
 function newLead(){S.curId=null;S.isNew=true;buildDrw(null);openDrw();}
 function openDrw(){document.getElementById("ovl").classList.add("on");document.getElementById("drw").classList.add("on");document.body.style.overflow="hidden";}
+function loadAllTime(){
+  document.getElementById("dateRangeInfo").innerHTML = 'Showing <strong>all leads</strong> — <a href="#" onclick="loadLeads()" style="color:var(--red)">back to last 90 days</a>';
+  api("getEnquiries", {allTime:true, site:v("fSite"), department:v("fDept"), status:v("fStat")||"", source:v("fSrc"), search:v("fSearch")}).then(r=>{
+    S.all = r.enquiries||[];
+    const statusFilter = v("fStat");
+    S.filtered = statusFilter ? [...S.all] : S.all.filter(e=>e["Status"]!=="Duplicate");
+    render(); calcStats();
+  });
+}
+
 function closeDrw(){document.getElementById("ovl").classList.remove("on");document.getElementById("drw").classList.remove("on");document.body.style.overflow="";}
 
 async function markSpam(){
