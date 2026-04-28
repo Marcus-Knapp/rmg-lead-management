@@ -862,9 +862,6 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
   </div>
   <div class="nav-sep"></div>
-  <div id="dateRangeInfo" style="font-size:11px;color:var(--ink3);padding:5px 20px;background:var(--page);border-bottom:1px solid var(--divider)">
-    Showing leads from <strong>last 90 days</strong> — <a href="#" onclick="loadAllTime();return false;" style="color:var(--red)">show all time</a>
-  </div>
   <div class="filters" id="filterBar">
     <select class="fsel" id="fSite" onchange="doFilter()"><option value="">All Sites</option></select>
     <select class="fsel" id="fDept" onchange="doFilter()"><option value="">Sales &amp; Aftersales</option><option>Sales</option><option>Aftersales</option></select>
@@ -874,6 +871,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
     <input class="fdate hm" type="date" id="fFrom" onchange="doFilter()" title="From date">
     <input class="fdate hm" type="date" id="fTo" onchange="doFilter()" title="To date">
     <button class="btn-clr" onclick="clearF()">Clear</button>
+    <button class="btn-clr" id="btnTimeRange" onclick="toggleTimeRange()" title="Switch between 90 days and all time">Last 90 days</button>
   </div>
 </div>
 
@@ -1150,14 +1148,22 @@ function openLead(id){
 }
 function newLead(){S.curId=null;S.isNew=true;buildDrw(null);openDrw();}
 function openDrw(){document.getElementById("ovl").classList.add("on");document.getElementById("drw").classList.add("on");document.body.style.overflow="hidden";}
+var S_allTime = false;
+
+function toggleTimeRange(){
+  S_allTime = !S_allTime;
+  var btn = document.getElementById("btnTimeRange");
+  if(btn) btn.textContent = S_allTime ? "All time" : "Last 90 days";
+  if(btn) btn.style.background = S_allTime ? "var(--red)" : "";
+  if(btn) btn.style.color = S_allTime ? "#fff" : "";
+  loadLeads();
+}
+
 function loadAllTime(){
-  document.getElementById("dateRangeInfo").innerHTML = 'Showing <strong>all leads</strong> — <a href="#" onclick="loadLeads()" style="color:var(--red)">back to last 90 days</a>';
-  api("getEnquiries", {allTime:true, site:v("fSite"), department:v("fDept"), status:v("fStat")||"", source:v("fSrc"), search:v("fSearch")}).then(r=>{
-    S.all = r.enquiries||[];
-    const statusFilter = v("fStat");
-    S.filtered = statusFilter ? [...S.all] : S.all.filter(e=>e["Status"]!=="Duplicate");
-    render(); calcStats();
-  });
+  S_allTime = true;
+  var btn = document.getElementById("btnTimeRange");
+  if(btn){ btn.textContent="All time"; btn.style.background="var(--red)"; btn.style.color="#fff"; }
+  loadLeads();
 }
 
 function closeDrw(){document.getElementById("ovl").classList.remove("on");document.getElementById("drw").classList.remove("on");document.body.style.overflow="";}
