@@ -862,6 +862,9 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
   </div>
   <div class="nav-sep"></div>
+  <div id="dateRangeInfo" style="font-size:11px;color:var(--ink3);padding:5px 20px;background:var(--page);border-bottom:1px solid var(--divider)">
+    Showing leads from <strong>last 90 days</strong> — <a href="#" onclick="loadAllTime();return false;" style="color:var(--red)">show all time</a>
+  </div>
   <div class="filters" id="filterBar">
     <select class="fsel" id="fSite" onchange="doFilter()"><option value="">All Sites</option></select>
     <select class="fsel" id="fDept" onchange="doFilter()"><option value="">Sales &amp; Aftersales</option><option>Sales</option><option>Aftersales</option></select>
