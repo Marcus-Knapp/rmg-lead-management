@@ -885,7 +885,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
 <!-- STATS BAR -->
 <div id="statsbar">
-  <div class="stat" id="statTotal" onclick="resetFilters()" title="Click to reset all filters" style="cursor:pointer;user-select:none"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads ↺</div><div class="stat-s" id="stToday">— today</div></div>
+  <div class="stat" id="statTotal" onclick="resetFilters()" title="Click to reset all filters" style="cursor:pointer;user-select:none"><div class="stat-n" style="color:#FF6B6B" id="stT">—</div><div class="stat-l">Total Leads ↺</div><div class="stat-s" id="stToday">— today</div></div>
   <div class="stat" id="statWeek" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
   <div class="stat" id="statMonth" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
 
@@ -1008,6 +1008,7 @@ async function loadLeads(silent=false) {
 
     setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
     render(); calcStats(); loadIngestion();
+    if (!document.querySelector(".stat.active")) setActiveStat("statTotal");
 
     // Fetch unfiltered totals for stats bar AFTER table renders (background)
     if (!S.allTime) {
@@ -1112,16 +1113,18 @@ function clearF(){
 
 // ── PAGINATION ────────────────────────────────────────────────────
 function renderPg(total) {
-  const pages=Math.ceil(total/CONFIG.PER_PAGE)||1;
-  const s=(S.page-1)*CONFIG.PER_PAGE+1, e=Math.min(S.page*CONFIG.PER_PAGE,total);
-  const dispS = total ? s : 0;
-  const dispE = total ? e : 0;
-  document.getElementById("pgInfo").textContent=total?`${dispS}–${dispE} of ${total} lead${total===1?"":"s"}`:"No results";
-  let h=`<button class="pgb" onclick="goPg(${S.page-1})" ${S.page<=1?"disabled":""}>‹</button>`;
-  for(let p=Math.max(1,S.page-2);p<=Math.min(pages,S.page+2);p++)
-    h+=`<button class="pgb ${p===S.page?"on":""}" onclick="goPg(${p})">${p}</button>`;
-  h+=`<button class="pgb" onclick="goPg(${S.page+1})" ${S.page>=pages?"disabled":""}>›</button>`;
-  document.getElementById("pgBtns").innerHTML=h;
+  const perPage = CONFIG.PER_PAGE;
+  const pages   = Math.ceil(total/perPage) || 1;
+  const from    = total === 0 ? 0 : (S.page-1)*perPage + 1;
+  const to      = Math.min(S.page*perPage, total);
+  document.getElementById("pgInfo").textContent = total
+    ? from + "–" + to + " of " + total + " lead" + (total===1?"":"s")
+    : "No results";
+  let h = '<button class="pgb" onclick="goPg(' + (S.page-1) + ')" ' + (S.page<=1?"disabled":"") + '>&#8249;</button>';
+  for(let p=Math.max(1,S.page-2); p<=Math.min(pages,S.page+2); p++)
+    h += '<button class="pgb ' + (p===S.page?"on":"") + '" onclick="goPg(' + p + ')">' + p + '</button>';
+  h += '<button class="pgb" onclick="goPg(' + (S.page+1) + ')" ' + (S.page>=pages?"disabled":"") + '>&#8250;</button>';
+  document.getElementById("pgBtns").innerHTML = h;
 }
 function goPg(p){const mx=Math.ceil(S.filtered.length/CONFIG.PER_PAGE);if(p<1||p>mx)return;S.page=p;render();document.getElementById("tableScroll").scrollTop=0;}
 
