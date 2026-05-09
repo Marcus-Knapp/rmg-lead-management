@@ -1147,12 +1147,14 @@ function filterThisWeek() {
 
 function calcStats() {
   const now=new Date(); now.setHours(0,0,0,0);
-  const weekAgo=new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
-  const monthAgo=new Date(now); monthAgo.setDate(monthAgo.getDate()-30);
+  // Monday of current week
+  const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
+  // First day of current month
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
   const total=S.filtered.length;
   const today=S.filtered.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
-  const week=S.filtered.filter(e=>new Date(e.Timestamp||0)>=weekAgo).length;
-  const month=S.filtered.filter(e=>new Date(e.Timestamp||0)>=monthAgo).length;
+  const week=S.filtered.filter(e=>new Date(e.Timestamp||0)>=mon).length;
+  const month=S.filtered.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
   const newLeads=S.filtered.filter(e=>e.Status==="New").length;
   const fu=S.filtered.filter(e=>{if(!e["Follow Up Date"])return false;const d=new Date(e["Follow Up Date"]);d.setHours(0,0,0,0);return d<=now&&e.Status!=="Sold"&&e.Status!=="Lost";}).length;
   const td=S.filtered.filter(e=>e["Test Drive"]===true).length;
