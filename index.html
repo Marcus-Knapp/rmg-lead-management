@@ -279,10 +279,12 @@ body {
   padding: 14px 24px;
   border-right: 1px solid rgba(255,255,255,0.08);
   min-width: 130px;
+  min-height: 72px;
   cursor: default;
   transition: background var(--t2);
   flex-shrink: 0;
   position: relative;
+  overflow: hidden;
 }
 .stat::after {
   content: '';
@@ -297,8 +299,8 @@ body {
 .stat:hover::after { background: var(--red); }
 .stat.active { background: rgba(255,255,255,0.1) !important; }
 .stat.active::after { background: #FF6B6B !important; height: 3px !important; left: 0 !important; right: 0 !important; }
-.stat.active .stat-n { color: #FF6B6B !important; font-size: 34px !important; }
-.stat.active .stat-n.blue { color: #FF6B6B !important; font-size: 34px !important; }
+.stat.active .stat-n { color: #FF6B6B !important; transform: scale(1.1); transform-origin: left center; display: inline-block; }
+.stat.active .stat-n.blue { color: #FF6B6B !important; }
 .stat.active .stat-l { color: #fff !important; font-weight: 800 !important; font-size: 13px !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
 .stat.active .stat-s { color: rgba(255,255,255,0.7) !important; }
 .stat-n {
@@ -1004,14 +1006,15 @@ async function loadLeads(silent=false) {
     const statusFilter = v("fStat");
     S.filtered = statusFilter ? [...S.all] : S.all.filter(e => e["Status"] !== "Duplicate");
 
-    // Fetch complete unfiltered dataset for stats bar totals (once per session)
+    setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
+    render(); calcStats(); loadIngestion();
+
+    // Fetch unfiltered totals for stats bar AFTER table renders (background)
     if (!S.allTime) {
       const rAll = await api("getEnquiries", {site:"",department:"",status:"",source:"",dateFrom:"",dateTo:"",search:""});
       S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
+      calcStats(); // update stats bar with correct totals
     }
-
-    setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
-    render(); calcStats(); loadIngestion();
   } catch(e) {
     setSync("err","Error");
     if (!silent) toast(e.message,"err");
@@ -1111,7 +1114,9 @@ function clearF(){
 function renderPg(total) {
   const pages=Math.ceil(total/CONFIG.PER_PAGE)||1;
   const s=(S.page-1)*CONFIG.PER_PAGE+1, e=Math.min(S.page*CONFIG.PER_PAGE,total);
-  document.getElementById("pgInfo").textContent=total?`${s}–${e} of ${total} leads`:"No results";
+  const dispS = total ? s : 0;
+  const dispE = total ? e : 0;
+  document.getElementById("pgInfo").textContent=total?`${dispS}–${dispE} of ${total} lead${total===1?"":"s"}`:"No results";
   let h=`<button class="pgb" onclick="goPg(${S.page-1})" ${S.page<=1?"disabled":""}>‹</button>`;
   for(let p=Math.max(1,S.page-2);p<=Math.min(pages,S.page+2);p++)
     h+=`<button class="pgb ${p===S.page?"on":""}" onclick="goPg(${p})">${p}</button>`;
