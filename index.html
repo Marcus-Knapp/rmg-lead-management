@@ -992,11 +992,19 @@ async function loadLeads(silent=false) {
   if (!silent) { document.getElementById("tLoad").style.display="flex"; document.getElementById("tbl").style.display="none"; }
   setSync("spin","Syncing…");
   try {
+    // Fetch filtered results for the table
     const r = await api("getEnquiries", getParams());
     S.all = r.enquiries||[];
-    // Hide Duplicate/Spam leads unless user has specifically filtered for them
     const statusFilter = v("fStat");
     S.filtered = statusFilter ? [...S.all] : S.all.filter(e => e["Status"] !== "Duplicate");
+
+    // Fetch complete unfiltered dataset for stats bar totals
+    // Only refetch if we don't already have it or if a full reload
+    if (!S.allTime || !silent) {
+      const rAll = await api("getEnquiries", {site:"",department:"",status:"",source:"",dateFrom:"",dateTo:"",search:""});
+      S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
+    }
+
     setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
     render(); calcStats(); loadIngestion();
   } catch(e) {
@@ -1149,10 +1157,11 @@ function calcStats() {
   const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
   // First day of current month
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
-  const total=S.all.length; // always full count regardless of filters
-  const today=S.all.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
-  const week=S.all.filter(e=>new Date(e.Timestamp||0)>=mon).length;
-  const month=S.all.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
+  const base=S.allTime||S.all; // always use unfiltered data for totals
+  const total=base.length;
+  const today=base.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
+  const week=base.filter(e=>new Date(e.Timestamp||0)>=mon).length;
+  const month=base.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
   document.getElementById("stT").textContent=total.toLocaleString();
   document.getElementById("stToday").textContent=today+" today";
   document.getElementById("stW").textContent=week;
