@@ -1461,13 +1461,15 @@ function drawRpt(s){
   var html = "";
 
   // ── KPI row ───────────────────────────────────────────────────
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">';
-  html += metric("Total leads", s.total||0, (s.todayCount||0)+" today");
-  html += metric("This week", s.weekCount||0, "last 7 days");
-  html += metric("This month", s.monthCount||0, "last 30 days");
-  html += metric("Sales leads", s.salesRows||0, "dept: sales");
-  html += metric("Aftersales", s.aftersalesRows||0, "dept: aftersales");
-  html += metric("New — unactioned", (s.byStatus&&s.byStatus["New"])||0, "awaiting contact");
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px">';
+  html += metric("Total leads",     s.total||0,              (s.todayCount||0)+" today");
+  html += metric("This week",       s.thisWeekCount||0,      "Mon – Sun");
+  html += metric("This month",      s.thisMonthCount||0,     "1st – today");
+  html += metric("Last 7 days",     s.weekCount||0,          "rolling 7 days");
+  html += metric("Last 30 days",    s.monthCount||0,         "rolling 30 days");
+  html += metric("Sales",           s.salesRows||0,          "dept: sales");
+  html += metric("Aftersales",      s.aftersalesRows||0,     "dept: aftersales");
+  html += metric("New — unactioned",(s.byStatus&&s.byStatus["New"])||0, "awaiting contact");
   html += '</div>';
 
   // ── row 1: daily trend + hourly heatmap ───────────────────────
