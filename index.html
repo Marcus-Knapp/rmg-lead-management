@@ -1007,23 +1007,29 @@ async function loadLeads(silent=false) {
       S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
     }
 
-    // Client-side filtering
-    const p = getParams();
+    // Client-side filtering — read params fresh from DOM
+    const site   = v("fSite");
+    const dept   = v("fDept");
+    const stat   = v("fStat");
+    const src    = v("fSrc");
+    const dfrom  = v("fFrom");
+    const dto    = v("fTo");
+    const srch   = (document.getElementById("topQ")||{}).value||"";
     let rows = [...S.allTime];
-    if (p.site)       rows = rows.filter(r => r["Site"] === p.site);
-    if (p.department) rows = rows.filter(r => r["Department"] === p.department);
-    if (p.status)     rows = rows.filter(r => r["Status"] === p.status);
-    if (p.source)     rows = rows.filter(r => r["Source"] === p.source);
-    if (p.dateFrom) {
-      const from = new Date(p.dateFrom);
-      rows = rows.filter(r => new Date(r["Timestamp"]) >= from);
+    if (site)  rows = rows.filter(r => r["Site"] === site);
+    if (dept)  rows = rows.filter(r => r["Department"] === dept);
+    if (stat)  rows = rows.filter(r => r["Status"] === stat);
+    if (src)   rows = rows.filter(r => r["Source"] === src);
+    if (dfrom) {
+      const from = new Date(dfrom + "T00:00:00");
+      rows = rows.filter(r => r["Timestamp"] && new Date(r["Timestamp"]) >= from);
     }
-    if (p.dateTo) {
-      const to = new Date(p.dateTo); to.setHours(23,59,59);
-      rows = rows.filter(r => new Date(r["Timestamp"]) <= to);
+    if (dto) {
+      const to = new Date(dto + "T23:59:59");
+      rows = rows.filter(r => r["Timestamp"] && new Date(r["Timestamp"]) <= to);
     }
-    if (p.search) {
-      const s = p.search.toLowerCase();
+    if (srch) {
+      const s = srch.toLowerCase();
       rows = rows.filter(r =>
         (r["First Name"]+" "+r["Last Name"]).toLowerCase().includes(s) ||
         String(r["Email"]).toLowerCase().includes(s) ||
@@ -1178,7 +1184,7 @@ function filterThisMonth() {
   const now   = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
   const last  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const fmt   = d => d.toISOString().split("T")[0];
+  const fmt   = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   document.getElementById("fFrom").value = fmt(first);
   document.getElementById("fTo").value   = fmt(last);
   const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
@@ -1194,10 +1200,9 @@ function filterThisWeek() {
   mon.setHours(0,0,0,0);
   const sun  = new Date(mon);
   sun.setDate(mon.getDate() + 6);
-  const fmt  = d => d.toISOString().split("T")[0];
+  const fmt  = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   document.getElementById("fFrom").value = fmt(mon);
   document.getElementById("fTo").value   = fmt(sun);
-  // Switch to leads tab if on another tab
   const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
   if (leadsTab) leadsTab.click();
   setActiveStat("statWeek");
