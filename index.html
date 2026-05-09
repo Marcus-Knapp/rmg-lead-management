@@ -1166,11 +1166,8 @@ function filterThisWeek() {
   // Switch to leads tab if on another tab
   const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
   if (leadsTab) leadsTab.click();
+  setActiveStat("statWeek");
   doFilter();
-  // Brief visual feedback
-  const el = document.getElementById("stW");
-  el.style.transform = "scale(1.15)";
-  setTimeout(function(){ el.style.transform = ""; }, 300);
 }
 
 function calcStats() {
