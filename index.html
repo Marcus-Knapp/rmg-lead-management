@@ -295,6 +295,10 @@ body {
 }
 .stat:hover { background: rgba(255,255,255,0.05); }
 .stat:hover::after { background: var(--red); }
+.stat.active { background: rgba(255,255,255,0.12) !important; }
+.stat.active::after { background: #fff !important; }
+.stat.active .stat-n { color: #fff !important; }
+.stat.active .stat-l { color: rgba(255,255,255,0.9) !important; font-weight: 600; }
 .stat-n {
   font-size: 28px;
   font-weight: 700;
@@ -877,7 +881,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
 <!-- STATS BAR -->
 <div id="statsbar">
-  <div class="stat" id="statTotal" onclick="resetFilters()" title="Click to reset all filters" style="cursor:pointer"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads ↺</div><div class="stat-s" id="stToday">— today</div></div>
+  <div class="stat" id="statTotal" onclick="resetFilters()" title="Click to reset all filters" style="cursor:pointer;user-select:none"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads ↺</div><div class="stat-s" id="stToday">— today</div></div>
   <div class="stat" id="statWeek" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
   <div class="stat" id="statMonth" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
 
@@ -998,9 +1002,8 @@ async function loadLeads(silent=false) {
     const statusFilter = v("fStat");
     S.filtered = statusFilter ? [...S.all] : S.all.filter(e => e["Status"] !== "Duplicate");
 
-    // Fetch complete unfiltered dataset for stats bar totals
-    // Only refetch if we don't already have it or if a full reload
-    if (!S.allTime || !silent) {
+    // Fetch complete unfiltered dataset for stats bar totals (once per session)
+    if (!S.allTime) {
       const rAll = await api("getEnquiries", {site:"",department:"",status:"",source:"",dateFrom:"",dateTo:"",search:""});
       S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
     }
@@ -1131,14 +1134,7 @@ function setActiveStat(activeId) {
   ["statTotal","statWeek","statMonth"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (id === activeId) {
-      el.style.background = "var(--red)";
-      el.style.color = "#fff";
-      el.style.borderRadius = "var(--r)";
-    } else {
-      el.style.background = "";
-      el.style.color = "";
-    }
+    el.classList.toggle("active", id === activeId);
   });
 }
 
@@ -1186,8 +1182,8 @@ function calcStats() {
   const today=base.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
   const week=base.filter(e=>new Date(e.Timestamp||0)>=mon).length;
   const month=base.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
-  document.getElementById("stT").textContent=total.toLocaleString();
-  document.getElementById("stToday").textContent=today+" today";
+  document.getElementById("stT").textContent=(S.allTime||S.all).length.toLocaleString();
+  document.getElementById("stToday").textContent=today+" today"; // from S.allTime
   document.getElementById("stW").textContent=week;
   document.getElementById("stM").textContent=month;
 }
