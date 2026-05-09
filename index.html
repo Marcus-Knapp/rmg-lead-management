@@ -1000,22 +1000,46 @@ async function loadLeads(silent=false) {
   if (!silent) { document.getElementById("tLoad").style.display="flex"; document.getElementById("tbl").style.display="none"; }
   setSync("spin","Syncing…");
   try {
-    // Fetch filtered results for the table
-    const r = await api("getEnquiries", getParams());
-    S.all = r.enquiries||[];
-    const statusFilter = v("fStat");
-    S.filtered = statusFilter ? [...S.all] : S.all.filter(e => e["Status"] !== "Duplicate");
+    // Fetch full dataset once, then filter client-side
+    // This guarantees stats bar and table always show the same data
+    if (!S.allTime) {
+      const rAll = await api("getEnquiries", {site:"",department:"",status:"",source:"",dateFrom:"",dateTo:"",search:"",allTime:true});
+      S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
+    }
+
+    // Client-side filtering
+    const p = getParams();
+    let rows = [...S.allTime];
+    if (p.site)       rows = rows.filter(r => r["Site"] === p.site);
+    if (p.department) rows = rows.filter(r => r["Department"] === p.department);
+    if (p.status)     rows = rows.filter(r => r["Status"] === p.status);
+    if (p.source)     rows = rows.filter(r => r["Source"] === p.source);
+    if (p.dateFrom) {
+      const from = new Date(p.dateFrom);
+      rows = rows.filter(r => new Date(r["Timestamp"]) >= from);
+    }
+    if (p.dateTo) {
+      const to = new Date(p.dateTo); to.setHours(23,59,59);
+      rows = rows.filter(r => new Date(r["Timestamp"]) <= to);
+    }
+    if (p.search) {
+      const s = p.search.toLowerCase();
+      rows = rows.filter(r =>
+        (r["First Name"]+" "+r["Last Name"]).toLowerCase().includes(s) ||
+        String(r["Email"]).toLowerCase().includes(s) ||
+        String(r["Phone"]).toLowerCase().includes(s) ||
+        String(r["Vehicle Interest"]).toLowerCase().includes(s) ||
+        String(r["Reg / Model"]).toLowerCase().includes(s) ||
+        String(r["Enquiry ID"]).toLowerCase().includes(s) ||
+        String(r["Message"]).toLowerCase().includes(s)
+      );
+    }
+    S.all      = rows;
+    S.filtered = rows;
 
     setSync("on", new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
     render(); calcStats(); loadIngestion();
     if (!document.querySelector(".stat.active")) setActiveStat("statTotal");
-
-    // Fetch unfiltered totals for stats bar AFTER table renders (background)
-    if (!S.allTime) {
-      const rAll = await api("getEnquiries", {site:"",department:"",status:"",source:"",dateFrom:"",dateTo:"",search:""});
-      S.allTime = (rAll.enquiries||[]).filter(e => e["Status"] !== "Duplicate");
-      calcStats(); // update stats bar with correct totals
-    }
   } catch(e) {
     setSync("err","Error");
     if (!silent) toast(e.message,"err");
@@ -1025,11 +1049,13 @@ async function loadLeads(silent=false) {
 }
 
 function getParams() {
-  return {
+  const p = {
     site:v("fSite"), department:v("fDept"), status:v("fStat"), source:v("fSrc"),
     search:document.getElementById("topQ").value,
     dateFrom:v("fFrom"), dateTo:v("fTo")
   };
+  console.log("getParams:", JSON.stringify(p));
+  return p;
 }
 
 // ── CUSTOMER EMAIL HELPER ─────────────────────────────────────────
@@ -1246,6 +1272,7 @@ async function markSpam(){
     // Remove from local data immediately — no reload needed
     S.all      = S.all.filter(e=>e["Enquiry ID"]!==S.curId);
     S.filtered = S.filtered.filter(e=>e["Enquiry ID"]!==S.curId);
+    S.allTime  = S.allTime ? S.allTime.filter(e=>e["Enquiry ID"]!==S.curId) : null;
     closeDrw();
     render();
     calcStats();
@@ -1343,7 +1370,7 @@ async function saveLead(){
     };
     if(S.isNew){await api("addEnquiry",data);toast("Lead created","ok");}
     else{await api("updateEnquiry",{enquiryId:S.curId,updates:data,updatedBy:CONFIG.USER_NAME});toast("Saved","ok");}
-    closeDrw();loadLeads(true);
+    closeDrw();S.allTime=null;loadLeads(true);
   }catch(e){toast(e.message,"err");}
   finally{btn.textContent="Save Lead";btn.disabled=false;}
 }
