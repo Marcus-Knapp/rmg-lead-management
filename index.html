@@ -877,9 +877,9 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 
 <!-- STATS BAR -->
 <div id="statsbar">
-  <div class="stat"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads</div><div class="stat-s" id="stToday">— today</div></div>
-  <div class="stat" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
-  <div class="stat" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
+  <div class="stat" id="statTotal" onclick="resetFilters()" title="Click to reset all filters" style="cursor:pointer"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads ↺</div><div class="stat-s" id="stToday">— today</div></div>
+  <div class="stat" id="statWeek" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
+  <div class="stat" id="statMonth" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
 
 </div>
 
@@ -1048,7 +1048,7 @@ function render() {
 
   document.getElementById("tLoad").style.display="none";
   document.getElementById("tbl").style.display="table";
-  document.getElementById("ct").textContent=total;
+  document.getElementById("ct").textContent=(S.allTime||S.all).length;
 
   if (!page.length) {
     tbody.innerHTML=`<tr><td colspan="10"><div class="centered empty"><h3>No leads found</h3><p>Try adjusting your filters or add a new lead</p></div></td></tr>`;
@@ -1068,7 +1068,7 @@ function row(e) {
   const sol = e.Sold  ===true||e.Sold  ==="TRUE";
   const contact = customerContact(e);
 
-  return `<tr data-id="${e["Enquiry ID"]}" onclick="openLead(this.dataset.id)" ${st==="New"?"style='background:rgba(200,16,46,0.02)'":""}>
+  return `<tr data-id="${e["Enquiry ID"]}" onclick="openLead(this.dataset.id)">
     <td><div class="td-date"><b>${dt}</b>${tm}</div></td>
     <td class="td-name"><b>${nm}</b><small>${contact}</small>${e.Message?`<span style="display:block;font-size:11px;color:var(--ghost);margin-top:2px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:italic">${x(e.Message).substring(0,80)}</span>`:""}</td>
     <td class="hm" style="font-size:12px;color:var(--muted)">${e.Site||"—"}</td>
@@ -1116,6 +1116,32 @@ function renderPg(total) {
 function goPg(p){const mx=Math.ceil(S.filtered.length/CONFIG.PER_PAGE);if(p<1||p>mx)return;S.page=p;render();document.getElementById("tableScroll").scrollTop=0;}
 
 // ── STATS ─────────────────────────────────────────────────────────
+function resetFilters() {
+  ["fSite","fDept","fStat","fSrc","fFrom","fTo"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  const searchEl = document.getElementById("fSearch");
+  if (searchEl) searchEl.value = "";
+  setActiveStat("statTotal");
+  doFilter();
+}
+
+function setActiveStat(activeId) {
+  ["statTotal","statWeek","statMonth"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === activeId) {
+      el.style.background = "var(--red)";
+      el.style.color = "#fff";
+      el.style.borderRadius = "var(--r)";
+    } else {
+      el.style.background = "";
+      el.style.color = "";
+    }
+  });
+}
+
 function filterThisMonth() {
   const now   = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1125,10 +1151,8 @@ function filterThisMonth() {
   document.getElementById("fTo").value   = fmt(last);
   const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
   if (leadsTab) leadsTab.click();
+  setActiveStat("statWeek");
   doFilter();
-  const el = document.getElementById("stM");
-  el.style.transform = "scale(1.15)";
-  setTimeout(function(){ el.style.transform = ""; }, 300);
 }
 
 function filterThisWeek() {
