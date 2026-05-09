@@ -295,10 +295,12 @@ body {
 }
 .stat:hover { background: rgba(255,255,255,0.05); }
 .stat:hover::after { background: var(--red); }
-.stat.active { background: rgba(255,255,255,0.12) !important; }
-.stat.active::after { background: #fff !important; }
-.stat.active .stat-n { color: #fff !important; }
-.stat.active .stat-l { color: rgba(255,255,255,0.9) !important; font-weight: 600; }
+.stat.active { background: #fff !important; border-radius: 6px; }
+.stat.active::after { background: transparent !important; }
+.stat.active .stat-n { color: #1a1917 !important; }
+.stat.active .stat-n.blue { color: #1a1917 !important; }
+.stat.active .stat-l { color: #1a1917 !important; font-weight: 700; }
+.stat.active .stat-s { color: #555 !important; }
 .stat-n {
   font-size: 28px;
   font-weight: 700;
