@@ -880,9 +880,7 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
   <div class="stat"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads</div><div class="stat-s" id="stToday">— today</div></div>
   <div class="stat" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
   <div class="stat" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
-  <div class="stat"><div class="stat-n red" id="stN">—</div><div class="stat-l">New</div><div class="stat-s">Awaiting action</div></div>
-  <div class="stat"><div class="stat-n amb" id="stF">—</div><div class="stat-l">Follow Up Due</div></div>
-  <div class="stat hm"><div class="stat-n" id="stTD">—</div><div class="stat-l">Test Drives</div></div>
+
 </div>
 
 <!-- MAIN -->
@@ -1151,20 +1149,14 @@ function calcStats() {
   const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
   // First day of current month
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
-  const total=S.filtered.length;
-  const today=S.filtered.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
-  const week=S.filtered.filter(e=>new Date(e.Timestamp||0)>=mon).length;
-  const month=S.filtered.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
-  const newLeads=S.filtered.filter(e=>e.Status==="New").length;
-  const fu=S.filtered.filter(e=>{if(!e["Follow Up Date"])return false;const d=new Date(e["Follow Up Date"]);d.setHours(0,0,0,0);return d<=now&&e.Status!=="Sold"&&e.Status!=="Lost";}).length;
-  const td=S.filtered.filter(e=>e["Test Drive"]===true).length;
+  const total=S.all.length; // always full count regardless of filters
+  const today=S.all.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
+  const week=S.all.filter(e=>new Date(e.Timestamp||0)>=mon).length;
+  const month=S.all.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
   document.getElementById("stT").textContent=total.toLocaleString();
   document.getElementById("stToday").textContent=today+" today";
   document.getElementById("stW").textContent=week;
   document.getElementById("stM").textContent=month;
-  document.getElementById("stN").textContent=newLeads;
-  document.getElementById("stF").textContent=fu;
-  document.getElementById("stTD").textContent=td;
 }
 
 async function loadIngestion(){
