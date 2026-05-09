@@ -878,8 +878,8 @@ const ANON_DOMAINS = ["anon.cargurus.com"];
 <!-- STATS BAR -->
 <div id="statsbar">
   <div class="stat"><div class="stat-n" id="stT">—</div><div class="stat-l">Total Leads</div><div class="stat-s" id="stToday">— today</div></div>
-  <div class="stat"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week</div></div>
-  <div class="stat"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month</div></div>
+  <div class="stat" onclick="filterThisWeek()" title="Click to filter this week's leads" style="cursor:pointer"><div class="stat-n blue" id="stW">—</div><div class="stat-l">This Week ↗</div></div>
+  <div class="stat" onclick="filterThisMonth()" title="Click to filter this month's leads" style="cursor:pointer"><div class="stat-n" id="stM">—</div><div class="stat-l">This Month ↗</div></div>
   <div class="stat"><div class="stat-n red" id="stN">—</div><div class="stat-l">New</div><div class="stat-s">Awaiting action</div></div>
   <div class="stat"><div class="stat-n amb" id="stF">—</div><div class="stat-l">Follow Up Due</div></div>
   <div class="stat hm"><div class="stat-n" id="stTD">—</div><div class="stat-l">Test Drives</div></div>
@@ -1110,6 +1110,41 @@ function renderPg(total) {
 function goPg(p){const mx=Math.ceil(S.filtered.length/CONFIG.PER_PAGE);if(p<1||p>mx)return;S.page=p;render();document.getElementById("tableScroll").scrollTop=0;}
 
 // ── STATS ─────────────────────────────────────────────────────────
+function filterThisMonth() {
+  const now   = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const last  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const fmt   = d => d.toISOString().split("T")[0];
+  document.getElementById("fFrom").value = fmt(first);
+  document.getElementById("fTo").value   = fmt(last);
+  const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
+  if (leadsTab) leadsTab.click();
+  doFilter();
+  const el = document.getElementById("stM");
+  el.style.transform = "scale(1.15)";
+  setTimeout(function(){ el.style.transform = ""; }, 300);
+}
+
+function filterThisWeek() {
+  const now  = new Date();
+  const mon  = new Date(now);
+  mon.setDate(now.getDate() - ((now.getDay()+6)%7)); // Monday of current week
+  mon.setHours(0,0,0,0);
+  const sun  = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  const fmt  = d => d.toISOString().split("T")[0];
+  document.getElementById("fFrom").value = fmt(mon);
+  document.getElementById("fTo").value   = fmt(sun);
+  // Switch to leads tab if on another tab
+  const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
+  if (leadsTab) leadsTab.click();
+  doFilter();
+  // Brief visual feedback
+  const el = document.getElementById("stW");
+  el.style.transform = "scale(1.15)";
+  setTimeout(function(){ el.style.transform = ""; }, 300);
+}
+
 function calcStats() {
   const now=new Date(); now.setHours(0,0,0,0);
   const weekAgo=new Date(now); weekAgo.setDate(weekAgo.getDate()-7);
