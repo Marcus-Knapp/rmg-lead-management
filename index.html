@@ -295,12 +295,12 @@ body {
 }
 .stat:hover { background: rgba(255,255,255,0.05); }
 .stat:hover::after { background: var(--red); }
-.stat.active { background: #fff !important; border-radius: 6px; }
-.stat.active::after { background: transparent !important; }
-.stat.active .stat-n { color: #1a1917 !important; }
-.stat.active .stat-n.blue { color: #1a1917 !important; }
-.stat.active .stat-l { color: #1a1917 !important; font-weight: 700; }
-.stat.active .stat-s { color: #555 !important; }
+.stat.active { background: rgba(255,255,255,0.1) !important; }
+.stat.active::after { background: #FF6B6B !important; height: 3px !important; left: 0 !important; right: 0 !important; }
+.stat.active .stat-n { color: #FF6B6B !important; font-size: 34px !important; }
+.stat.active .stat-n.blue { color: #FF6B6B !important; font-size: 34px !important; }
+.stat.active .stat-l { color: #fff !important; font-weight: 800 !important; font-size: 13px !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
+.stat.active .stat-s { color: rgba(255,255,255,0.7) !important; }
 .stat-n {
   font-size: 28px;
   font-weight: 700;
@@ -1149,7 +1149,7 @@ function filterThisMonth() {
   document.getElementById("fTo").value   = fmt(last);
   const leadsTab = document.querySelector('.tab[data-tab="leads"]') || document.querySelector('.tab');
   if (leadsTab) leadsTab.click();
-  setActiveStat("statWeek");
+  setActiveStat("statMonth");
   doFilter();
 }
 
