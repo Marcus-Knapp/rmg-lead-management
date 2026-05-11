@@ -1089,7 +1089,6 @@ function render() {
 
   document.getElementById("tLoad").style.display="none";
   document.getElementById("tbl").style.display="table";
-  document.getElementById("ct").textContent=(S.allTime||S.all).length;
 
   if (!page.length) {
     tbody.innerHTML=`<tr><td colspan="10"><div class="centered empty"><h3>No leads found</h3><p>Try adjusting your filters or add a new lead</p></div></td></tr>`;
@@ -1211,19 +1210,46 @@ function filterThisWeek() {
 
 function calcStats() {
   const now=new Date(); now.setHours(0,0,0,0);
-  // Monday of current week
   const mon=new Date(now); mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
-  // First day of current month
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
-  const base=S.allTime||S.all; // always use unfiltered data for totals
-  const total=base.length;
-  const today=base.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
-  const week=base.filter(e=>new Date(e.Timestamp||0)>=mon).length;
-  const month=base.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
-  document.getElementById("stT").textContent=(S.allTime||S.all).length.toLocaleString();
-  document.getElementById("stToday").textContent=today+" today"; // from S.allTime
+
+  // Check if any non-date filters are active
+  const hasFilter = v("fSite")||v("fDept")||v("fStat")||v("fSrc")||
+                    (document.getElementById("topQ")||{}).value;
+
+  // If site/source/dept filter active — show stats for filtered set (no date filter)
+  // If date filter active or no filter — show stats from full allTime dataset
+  let base;
+  if (hasFilter) {
+    // Filter allTime by current non-date filters only
+    const site = v("fSite"), dept = v("fDept"), stat = v("fStat"), src = v("fSrc");
+    const srch = ((document.getElementById("topQ")||{}).value||"").toLowerCase();
+    base = (S.allTime||S.all).filter(e => {
+      if (site && e["Site"]       !== site) return false;
+      if (dept && e["Department"] !== dept) return false;
+      if (stat && e["Status"]     !== stat) return false;
+      if (src  && e["Source"]     !== src)  return false;
+      if (srch && !(
+        (e["First Name"]+" "+e["Last Name"]).toLowerCase().includes(srch) ||
+        String(e["Email"]).toLowerCase().includes(srch) ||
+        String(e["Reg / Model"]).toLowerCase().includes(srch)
+      )) return false;
+      return true;
+    });
+  } else {
+    base = S.allTime || S.all;
+  }
+
+  const total = base.length;
+  const today = base.filter(e=>{const d=new Date(e.Timestamp||0);d.setHours(0,0,0,0);return d.getTime()===now.getTime();}).length;
+  const week  = base.filter(e=>new Date(e.Timestamp||0)>=mon).length;
+  const month = base.filter(e=>new Date(e.Timestamp||0)>=monthStart).length;
+
+  document.getElementById("stT").textContent=total.toLocaleString();
+  document.getElementById("stToday").textContent=today+" today";
   document.getElementById("stW").textContent=week;
   document.getElementById("stM").textContent=month;
+  document.getElementById("ct").textContent=total;
 }
 
 async function loadIngestion(){
